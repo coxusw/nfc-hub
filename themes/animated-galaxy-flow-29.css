@@ -1,0 +1,63 @@
+/* =========================================================
+   Theme: Animated · Galaxy Flow
+   File: animated-galaxy-flow-29.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #171220;
+  --bg2: #2a1b35;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.12);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#7c42ef,#ef4299);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(124,66,239,0.1);
+  --pill-border: rgba(239,66,153,0.22);
+}
+
+
+/* Animated background + subtle button shimmer */
+body {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124,66,239,0.18) 0%, transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(239,66,153,0.14) 0%, transparent 45%),
+    linear-gradient(120deg, var(--bg1), var(--bg2), #2f181c);
+  background-size: 220% 220%;
+  animation: nfcBgShift 14s ease-in-out infinite;
+}
+
+@keyframes nfcBgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: translateX(-60%) rotate(12deg);
+  animation: nfcShimmer 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes nfcShimmer {
+  0% { transform: translateX(-60%) rotate(12deg); opacity: .0; }
+  25% { opacity: .55; }
+  50% { transform: translateX(60%) rotate(12deg); opacity: .0; }
+  100% { transform: translateX(60%) rotate(12deg); opacity: .0; }
+}
+
