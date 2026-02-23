@@ -146,10 +146,13 @@ const DATA_PATH = (slug) => `/data/clients/${slug}.json`;
     }
 
     function applyClient(c) {
-      // Theme
-      const themeHref = c.theme
-  ? (c.theme.startsWith("/") ? c.theme : `/themes/${c.theme}`)   // supports "theme-01.css" or "/themes/theme-01.css"
-  : DEFAULT_THEME;
+  // Theme
+  const themeHref = c.theme
+    ? (c.theme.startsWith("/") ? c.theme : `/themes/${c.theme}`)
+    : DEFAULT_THEME;
+
+  // ✅ ADD THIS LINE (this is what actually applies the theme)
+  document.getElementById("themeStylesheet").href = `${themeHref}?v=${Date.now()}`;
 
 $("logoImg").src = c.logoPath || "/logo.jpg";
 $("btnVcard").href = c.vcardPath || "/contact.vcf";
