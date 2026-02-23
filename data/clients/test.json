@@ -14,7 +14,7 @@
     "phoneDisplay": "123456789",
     "email": ""
   },
-  "theme": "theme-02-earthy.css",
+  "theme": "theme-01-neon-dark.css",
   "logoPath": "/logo.jpg",
   "vcardPath": "/vcards/test.vcf"
 }
