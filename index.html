@@ -1,27 +1,32 @@
 <!doctype html>
 <!-- =========================================================
-  NFC HUB (Wildcard Subdomains) — Single GitHub Pages site
+  NFC HUB (Path-based URLs) — Single GitHub Pages site
   =========================================================
 
   ✅ EDIT THESE (once)
   -------------------
-  1) BRAND_DOMAIN_BASE:
-       Example: card.crestedcritters.com
-  2) DEFAULT_THEME:
+  1) DEFAULT_THEME:
        Used if client JSON doesn't specify a theme.
-  3) DATA_PATH:
-       Where client JSON files live (default: /data/clients/{slug}.json)
+  2) DATA_PATH:
+       Where client JSON files live (default: ./data/clients/{slug}.json)
 
-  HOW IT WORKS
-  ------------
-  - Wildcard DNS points:
-      *.card.crestedcritters.com  →  yourusername.github.io
-  - Every subdomain loads THIS same site.
-  - This page reads location.hostname, extracts the slug, then loads:
-      /data/clients/{slug}.json
+  HOW IT WORKS (Option A)
+  -----------------------
+  - You use URLs like:
+      https://card.crestedcritters.com/test
+      https://card.crestedcritters.com/sam
 
-  Example:
-    sam.card.crestedcritters.com → loads /data/clients/sam.json
+  - This page reads the first path segment as the slug:
+      /test   → loads ./data/clients/test.json
+      /sam    → loads ./data/clients/sam.json
+
+  - It also supports a query fallback:
+      ?client=test
+
+  IMPORTANT FOR GITHUB PAGES
+  --------------------------
+  - GitHub Pages will 404 on /test unless you add a SPA fallback.
+  - You said you added 404.html — this file restores the intended path.
 ========================================================= -->
 <html lang="en">
 <head>
@@ -103,28 +108,34 @@
     // =========================================================
     // ✅ EDIT THESE (global settings)
     // =========================================================
-    const BRAND_DOMAIN_BASE = "card.crestedcritters.com"; // <-- change to yours
     const DEFAULT_THEME = "./themes/theme-01-neon-dark.css";
     const DATA_PATH = (slug) => `./data/clients/${slug}.json`;
 
     const $ = (id) => document.getElementById(id);
 
-    function getSlugFromHostname(hostname) {
-      const lower = hostname.toLowerCase();
+    // =========================================================
+    // Path / Query based slug (Option A)
+    // =========================================================
+    function getSlugFromPathOrQuery() {
+      // 1) Optional: query param support (?client=test)
+      const params = new URLSearchParams(location.search);
+      const qClient = (params.get("client") || "").trim().toLowerCase();
+      if (qClient) return qClient;
 
-      // If testing on github.io, show sample client
-      if (lower.endsWith(".github.io")) return "sample";
+      // 2) Path support (/test, /test/, /test/anything)
+      const parts = location.pathname.split("/").filter(Boolean);
+      const first = (parts[0] || "").trim().toLowerCase();
 
-      // Base domain (no client slug yet) → show sample for now
-      if (lower === BRAND_DOMAIN_BASE) return "sample";
+      // If no path segment, show sample
+      if (!first) return "sample";
 
-      // Subdomain of the base → take first label as slug
-      if (lower.endsWith("." + BRAND_DOMAIN_BASE)) {
-        const slug = lower.slice(0, lower.length - ("." + BRAND_DOMAIN_BASE).length);
-        return slug.split(".")[0];
+      // If hosted as https://username.github.io/nfc-hub/test
+      // then parts[0] is "nfc-hub" and parts[1] is the slug.
+      if (location.hostname.toLowerCase().endsWith(".github.io")) {
+        if (first === "nfc-hub" && parts.length >= 2) return (parts[1] || "sample").toLowerCase();
       }
 
-      return "sample";
+      return first;
     }
 
     async function loadClient(slug) {
@@ -180,7 +191,19 @@
     async function main() {
       $("year").textContent = new Date().getFullYear();
 
-      const slug = getSlugFromHostname(location.hostname);
+      // =========================================================
+      // ✅ SPA RESTORE BLOCK (put it here)
+      // This restores the intended /slug path after 404.html redirects to /
+      // =========================================================
+      const redirectPath = sessionStorage.redirectPath;
+      if (redirectPath) {
+        sessionStorage.removeItem("redirectPath");
+        history.replaceState(null, "", redirectPath);
+      }
+
+      // ✅ This is the "update main()" part:
+      // We now use path/query slug instead of hostname/subdomain.
+      const slug = getSlugFromPathOrQuery();
 
       try {
         const client = await loadClient(slug);
