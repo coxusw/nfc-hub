@@ -147,8 +147,12 @@ const DATA_PATH = (slug) => `/data/clients/${slug}.json`;
 
     function applyClient(c) {
       // Theme
-      const themeHref = c.theme ? `./themes/${c.theme}` : DEFAULT_THEME;
-      $("themeStylesheet").setAttribute("href", themeHref);
+      const themeHref = c.theme
+  ? (c.theme.startsWith("/") ? c.theme : `/themes/${c.theme}`)   // supports "theme-01.css" or "/themes/theme-01.css"
+  : DEFAULT_THEME;
+
+$("logoImg").src = c.logoPath || "/logo.jpg";
+$("btnVcard").href = c.vcardPath || "/contact.vcf";
 
       // Title + footer
       document.title = c.businessName || "NFC Card";
