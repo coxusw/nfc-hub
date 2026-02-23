@@ -157,6 +157,8 @@ function getParam(name){
 }
 
 function main(){
+    // If preview is embedded as a thumbnail, hide the topbar + tighten spacing
+  if (getParam("embed") === "1") document.body.classList.add("embed");
   $("year").textContent = new Date().getFullYear();
 
   const theme = applyTheme(getParam("theme") || DEFAULT_THEME);
