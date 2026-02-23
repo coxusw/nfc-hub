@@ -45,6 +45,15 @@
       text-decoration:none;
     }
     .mini button{ font-family: inherit; }
+    /* =========================================================
+   EMBED MODE (used by theme-gallery thumbnails)
+   If URL has ?embed=1
+========================================================= */
+body.embed .topbar{ display:none; }
+
+/* Tighten spacing inside iframe thumbnail */
+body.embed .wrap{ padding: 14px 12px; }
+body.embed .card{ transform: scale(.92); transform-origin: top center; }
   </style>
 </head>
 
