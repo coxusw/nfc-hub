@@ -1,0 +1,20 @@
+{
+  "slug": "test1",
+  "businessName": "test",
+  "tagline": "test",
+  "about": "test",
+  "links": {
+    "website": "crestedcritters.com",
+    "facebook": "",
+    "tiktok": ""
+  },
+  "contact": {
+    "name": "Christopher A Cox",
+    "phoneE164": "123456789",
+    "phoneDisplay": "123456789",
+    "email": "chrisuswcox@gmail.com"
+  },
+  "theme": "theme-02-earthy.css",
+  "logoPath": "/logo.jpg",
+  "vcardPath": "/vcards/test1.vcf"
+}
