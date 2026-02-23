@@ -6,6 +6,8 @@
   - Loads /themes/{theme}.css to override variables
   - Uses query params for the preview content:
       ?theme=...&businessName=...&tagline=...&about=...
+  - Special mode for gallery thumbnails:
+      ?embed=1
 ========================================================= -->
 <html lang="en">
 <head>
@@ -21,19 +23,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
+    /* Top toolbar (full preview only) */
     .topbar{
-      position: sticky; top: 0; z-index: 10;
+      position: sticky;
+      top: 0;
+      z-index: 10;
       backdrop-filter: blur(12px);
       background: rgba(0,0,0,.28);
       border-bottom: 1px solid rgba(255,255,255,.10);
       padding: 10px 12px;
     }
     .topbar .inner{
-      max-width: 520px; margin: 0 auto;
-      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      max-width: 520px;
+      margin: 0 auto;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
     }
-    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; opacity:.9; }
-    .mini{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:12px;
+      opacity:.9;
+    }
+    .mini{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
     .mini a, .mini button{
       border-radius:999px;
       padding:8px 12px;
@@ -45,15 +64,27 @@
       text-decoration:none;
     }
     .mini button{ font-family: inherit; }
-    /* =========================================================
-   EMBED MODE (used by theme-gallery thumbnails)
-   If URL has ?embed=1
-========================================================= */
-body.embed .topbar{ display:none; }
 
-/* Tighten spacing inside iframe thumbnail */
-body.embed .wrap{ padding: 14px 12px; }
-body.embed .card{ transform: scale(.92); transform-origin: top center; }
+    /* =========================================================
+       EMBED MODE (used by theme-gallery thumbnails)
+       If URL has ?embed=1
+    ========================================================= */
+    body.embed .topbar{ display:none; }
+
+    /* Make thumbnail tighter + visually centered */
+    body.embed .wrap{
+      padding: 10px 10px;
+      min-height: auto;
+    }
+
+    /* Scale card down nicely inside iframe */
+    body.embed .card{
+      transform: scale(.90);
+      transform-origin: top center;
+    }
+
+    /* Hide things that look weird in a tiny thumbnail */
+    body.embed #btnVcard{ display:none; }
   </style>
 </head>
 
@@ -147,8 +178,12 @@ function normalizeUrl(u){
 function applyTheme(themeFile){
   const theme = (themeFile || DEFAULT_THEME).trim();
   $("themeName").textContent = theme;
+
   const href = `/themes/${theme}`.replace("/themes//","/themes/");
+
+  // Cache-bust so theme switches show immediately
   document.getElementById("themeStylesheet").href = href + `?v=${Date.now()}`;
+
   return theme;
 }
 
@@ -157,8 +192,10 @@ function getParam(name){
 }
 
 function main(){
-    // If preview is embedded as a thumbnail, hide the topbar + tighten spacing
-  if (getParam("embed") === "1") document.body.classList.add("embed");
+  // If preview is embedded as a thumbnail, hide the topbar + tighten spacing
+  const isEmbed = (getParam("embed") === "1");
+  if (isEmbed) document.body.classList.add("embed");
+
   $("year").textContent = new Date().getFullYear();
 
   const theme = applyTheme(getParam("theme") || DEFAULT_THEME);
@@ -187,8 +224,10 @@ function main(){
   $("logoLink").href = website || "#";
 
   $("contactName").textContent = name;
+
   $("contactPhone").href = phone ? `tel:${phone}` : "#";
   $("contactPhone").textContent = phone || "";
+
   $("contactEmail").href = email ? `mailto:${email}` : "#";
   $("contactEmail").textContent = email || "";
 
@@ -196,9 +235,14 @@ function main(){
   $("pillText").href = phone ? `sms:${phone}` : "#";
   $("pillEmail").href = email ? `mailto:${email}` : "#";
 
+  // vCard disabled in preview (full preview shows it but clicking warns)
   $("btnVcard").href = "#";
-  $("btnVcard").addEventListener("click", (e)=>{ e.preventDefault(); alert("This is only a preview. vCard will work on the final card."); });
+  $("btnVcard").addEventListener("click", (e)=>{
+    e.preventDefault();
+    alert("This is only a preview. vCard will work on the final card.");
+  });
 
+  // Copy theme name
   $("btnCopy").addEventListener("click", async ()=>{
     try{
       await navigator.clipboard.writeText(theme);
@@ -209,7 +253,8 @@ function main(){
     }
   });
 
-  if(GOOGLE_FORM_PREFILL_URL && GOOGLE_FORM_PREFILL_URL.trim() !== ""){
+  // Hide the form button in embed mode (thumbnails don’t need it)
+  if (!isEmbed && GOOGLE_FORM_PREFILL_URL && GOOGLE_FORM_PREFILL_URL.trim() !== ""){
     const u = new URL(GOOGLE_FORM_PREFILL_URL);
     u.searchParams.set(THEME_QUERY_KEY, theme);
     $("btnForm").href = u.toString();
