@@ -1,0 +1,308 @@
+<!doctype html>
+<!-- =========================================================
+  NFC Theme Gallery + Client Intake (Option 1: Google Form)
+  ---------------------------------------------------------
+  ✅ EDIT THESE AT THE TOP (required)
+  1) GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
+     - Used to fetch your /themes folder listing via GitHub API
+  2) BRAND_HOST
+     - Your live Pages host for preview links (e.g. card.crestedcritters.com)
+  3) GOOGLE_FORM_PREFILL_URL (optional but recommended)
+     - A Google Form "prefill" link. We will append &THEME_PARAM=...
+     - If you don't have it yet, leave blank and the button will be hidden.
+
+  HOW TO GET A PREFILL LINK
+  1) In Google Forms → ⋮ menu → "Get pre-filled link"
+  2) Fill the form with placeholders (including a Theme field)
+  3) Click "Get link" and paste it into GOOGLE_FORM_PREFILL_URL
+  4) Set THEME_QUERY_KEY to the theme field key
+
+  NOTE
+  - This is a static page you can host in your GitHub Pages repo.
+  - It requires your repo to be public (so GitHub API can list /themes without a token).
+========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NFC Theme Gallery</title>
+  <meta name="description" content="Browse and preview themes for your NFC contact page." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#050816; --bg2:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:#eef2ff; --muted:#b6c2ff;
+      --chip:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(6,182,212,.18) 0%, transparent 45%),
+        radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
+        linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
+      min-height:100vh;
+    }
+    header{ padding:28px 18px 14px; text-align:center; }
+    h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:32px; }
+    .sub{margin:10px auto 0; max-width:900px; color:var(--muted); line-height:1.5}
+    .wrap{max-width:1100px; margin:0 auto; padding:14px 16px 40px}
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:center;
+      margin:14px 0 18px;
+    }
+    input, select{
+      background:rgba(0,0,0,.22);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+      min-width:220px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:600;
+      cursor:pointer;
+      user-select:none;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:14px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 18px 60px rgba(0,0,0,.25);
+    }
+    .name{ font-weight:700; margin:0 0 8px; font-size:14px; word-break:break-word; }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
+    .chip{
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      background:var(--chip);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap;}
+    .btn{
+      flex:1; min-width:120px; text-align:center;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
+      border-color:rgba(34,197,94,.28);
+    }
+    .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
+    footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Choose a theme</h1>
+    <p class="sub">
+      Preview a theme with sample content, then click <b>Use this theme</b> to open the intake form (or copy the theme name).
+    </p>
+  </header>
+
+  <main class="wrap">
+    <div class="controls">
+      <input id="search" placeholder="Search themes (e.g. luxury, medical, animated)" />
+      <select id="category">
+        <option value="all">All</option>
+        <option value="luxury">Luxury</option>
+        <option value="business">Business</option>
+        <option value="animated">Animated</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="pill" id="btnReload">Reload list</button>
+    </div>
+
+    <div id="status" class="sub" style="text-align:center; margin:0 0 14px;"></div>
+
+    <section class="grid" id="grid"></section>
+
+    <footer>
+      Tip: If you add new CSS files into <code>/themes</code>, refresh this page and they will appear automatically.
+    </footer>
+  </main>
+
+<script>
+/* =========================================================
+   ✅ EDIT HERE (required)
+========================================================= */
+const GITHUB_OWNER = "coxusw";
+const GITHUB_REPO  = "nfc-hub";
+const GITHUB_BRANCH = "main";
+
+/* Your live Pages host for previews (custom domain) */
+const BRAND_HOST = "card.crestedcritters.com";
+
+/* Optional: Google Form prefill link.
+   Leave "" to hide "Use this theme" buttons until your form is ready.
+*/
+const GOOGLE_FORM_PREFILL_URL = "";
+
+/* Replace with your Theme field entry key, e.g. "entry.987654321"
+   You can find this in your Google Form pre-filled link.
+*/
+const THEME_QUERY_KEY = "entry.000000000";
+/* ========================================================= */
+
+const $ = (id) => document.getElementById(id);
+
+function classify(name){
+  const n = name.toLowerCase();
+  if(n.startsWith("luxury-")) return "luxury";
+  if(n.startsWith("business-")) return "business";
+  if(n.startsWith("animated-")) return "animated";
+  return "other";
+}
+
+function humanize(file){
+  return file
+    .replace(/\.css$/i,"")
+    .replace(/[-_]+/g," ")
+    .replace(/\b\w/g, (m)=>m.toUpperCase());
+}
+
+function previewUrl(file){
+  const u = new URL(`https://${BRAND_HOST}/preview/`);
+  u.searchParams.set("theme", file);
+
+  // Sample content for preview only
+  u.searchParams.set("businessName", "Your Business Name");
+  u.searchParams.set("tagline", "Tagline or short promise");
+  u.searchParams.set("about", "This is a preview. Your real info will go here.");
+  u.searchParams.set("website", "https://example.com");
+  u.searchParams.set("facebook", "https://facebook.com/");
+  u.searchParams.set("tiktok", "https://tiktok.com/");
+  u.searchParams.set("name", "Your Name");
+  u.searchParams.set("phone", "+11234567890");
+  u.searchParams.set("email", "you@example.com");
+  return u.toString();
+}
+
+function formUrl(themeFile){
+  if(!GOOGLE_FORM_PREFILL_URL || GOOGLE_FORM_PREFILL_URL.trim() === "") return "";
+  const u = new URL(GOOGLE_FORM_PREFILL_URL);
+  u.searchParams.set(THEME_QUERY_KEY, themeFile);
+  return u.toString();
+}
+
+async function fetchThemes(){
+  const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const res = await fetch(api, { headers: { "Accept":"application/vnd.github+json" }});
+  if(!res.ok){
+    throw new Error(`GitHub API error ${res.status}. Is the repo public, and does /themes exist?`);
+  }
+  const data = await res.json();
+  if(!Array.isArray(data)) throw new Error("Unexpected GitHub API response.");
+  return data
+    .filter(x=>x.type==="file" && x.name.toLowerCase().endsWith(".css"))
+    .map(x=>x.name)
+    .sort((a,b)=>a.localeCompare(b));
+}
+
+function render(files){
+  const q = $("search").value.trim().toLowerCase();
+  const cat = $("category").value;
+
+  const filtered = files.filter(f=>{
+    const c = classify(f);
+    if(cat !== "all" && c !== cat) return false;
+    if(q && !f.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const grid = $("grid");
+  grid.innerHTML = "";
+
+  for(const f of filtered){
+    const c = classify(f);
+    const title = humanize(f);
+
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="name">${title}</div>
+      <div class="chips">
+        <span class="chip">${c}</span>
+        <span class="chip">${f}</span>
+      </div>
+      <div class="row">
+        <a class="btn primary" href="${previewUrl(f)}" target="_blank" rel="noopener">Preview</a>
+        ${GOOGLE_FORM_PREFILL_URL
+          ? `<a class="btn" href="${formUrl(f)}" target="_blank" rel="noopener">Use this theme</a>`
+          : `<button class="btn" data-copy="${f}">Copy name</button>`}
+      </div>
+      <div class="meta">
+        Preview opens a live demo with sample info.
+        ${GOOGLE_FORM_PREFILL_URL
+          ? "Use this theme opens your intake form with the theme pre-selected."
+          : "Copy the filename and send it with your intake details."}
+      </div>
+    `;
+    grid.appendChild(el);
+  }
+
+  // Copy handlers
+  grid.querySelectorAll("button[data-copy]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const val = btn.getAttribute("data-copy");
+      try{
+        await navigator.clipboard.writeText(val);
+        btn.textContent = "Copied!";
+        setTimeout(()=>btn.textContent="Copy name", 1200);
+      }catch{
+        alert("Clipboard blocked. Theme filename: " + val);
+      }
+    });
+  });
+
+  $("status").textContent = `${filtered.length} theme(s) shown.`;
+}
+
+let ALL = [];
+
+async function main(){
+  $("status").textContent = "Loading themes…";
+  try{
+    ALL = await fetchThemes();
+    render(ALL);
+  }catch(err){
+    $("status").textContent = err.message || String(err);
+  }
+}
+
+$("search").addEventListener("input", ()=>render(ALL));
+$("category").addEventListener("change", ()=>render(ALL));
+$("btnReload").addEventListener("click", main);
+
+main();
+</script>
+</body>
+</html>
