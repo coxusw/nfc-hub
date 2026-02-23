@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Luxury · Black Tie Gala (black-gold)
+   File: luxury-black-tie-gala-41.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #211d11;
+  --bg2: #35351b;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#e9be3e,#aee443);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(233,190,62,0.1);
+  --pill-border: rgba(174,228,67,0.22);
+}
+
+

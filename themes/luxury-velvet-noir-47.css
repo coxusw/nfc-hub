@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Luxury · Velvet Noir (espresso-copper)
+   File: luxury-velvet-noir-47.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #211811;
+  --bg2: #352d1b;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#e9853e,#e4e443);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(233,133,62,0.1);
+  --pill-border: rgba(228,228,67,0.22);
+}
+
+

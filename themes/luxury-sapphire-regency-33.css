@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Luxury · Sapphire Regency (midnight-sapphire)
+   File: luxury-sapphire-regency-33.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #111621;
+  --bg2: #1b1d35;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#3e77e9,#6b43e4);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(62,119,233,0.1);
+  --pill-border: rgba(107,67,228,0.22);
+}
+
+

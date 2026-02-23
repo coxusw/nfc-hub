@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Luxury · Copper Cigar Bar (obsidian-rose-gold)
+   File: luxury-copper-cigar-bar-22.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #211611;
+  --bg2: #352a1b;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#e9713e,#e4d143);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(233,113,62,0.1);
+  --pill-border: rgba(228,209,67,0.22);
+}
+
+
