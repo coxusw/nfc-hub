@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Violet Sphere
+   File: violet-sphere.css
+========================================================= */
+
+:root {
+  --bg1: #0d1412;
+  --bg2: #242e1d;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(102,237,159,0.18);
+  --btn-border: rgba(102,237,159,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(102,237,159,0.12);
+  --pill-border: rgba(102,237,159,0.28);
+}

@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Sunset Cloud
+   File: sunset-cloud.css
+========================================================= */
+
+:root {
+  --bg1: #0c181a;
+  --bg2: #262f32;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(90,142,211,0.18);
+  --btn-border: rgba(90,142,211,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(90,142,211,0.12);
+  --pill-border: rgba(90,142,211,0.28);
+}

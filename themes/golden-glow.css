@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Golden Glow
+   File: golden-glow.css
+========================================================= */
+
+:root {
+  --bg1: #0c0a12;
+  --bg2: #1f252e;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(219,236,174,0.18);
+  --btn-border: rgba(219,236,174,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(219,236,174,0.12);
+  --pill-border: rgba(219,236,174,0.28);
+}

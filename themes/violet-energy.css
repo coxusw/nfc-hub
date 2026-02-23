@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Violet Energy
+   File: violet-energy.css
+========================================================= */
+
+:root {
+  --bg1: #1f2513;
+  --bg2: #3b312f;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(149,191,133,0.18);
+  --btn-border: rgba(149,191,133,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(149,191,133,0.12);
+  --pill-border: rgba(149,191,133,0.28);
+}

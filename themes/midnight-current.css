@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Midnight Current
+   File: midnight-current.css
+========================================================= */
+
+:root {
+  --bg1: #261525;
+  --bg2: #361f41;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(83,86,141,0.18);
+  --btn-border: rgba(83,86,141,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(83,86,141,0.12);
+  --pill-border: rgba(83,86,141,0.28);
+}

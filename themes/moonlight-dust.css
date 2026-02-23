@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Moonlight Dust
+   File: moonlight-dust.css
+========================================================= */
+
+:root {
+  --bg1: #25151d;
+  --bg2: #433231;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(84,138,156,0.18);
+  --btn-border: rgba(84,138,156,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(84,138,156,0.12);
+  --pill-border: rgba(84,138,156,0.28);
+}

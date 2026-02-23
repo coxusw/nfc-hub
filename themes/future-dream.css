@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Future Dream
+   File: future-dream.css
+========================================================= */
+
+:root {
+  --bg1: #0f0a11;
+  --bg2: #281c1d;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(96,100,192,0.18);
+  --btn-border: rgba(96,100,192,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(96,100,192,0.12);
+  --pill-border: rgba(96,100,192,0.28);
+}

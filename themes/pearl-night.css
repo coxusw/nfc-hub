@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Pearl Night
+   File: pearl-night.css
+========================================================= */
+
+:root {
+  --bg1: #1d160e;
+  --bg2: #392c1a;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(179,166,136,0.18);
+  --btn-border: rgba(179,166,136,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(179,166,136,0.12);
+  --pill-border: rgba(179,166,136,0.28);
+}

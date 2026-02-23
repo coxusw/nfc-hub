@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Forest Mist
+   File: forest-mist.css
+========================================================= */
+
+:root {
+  --bg1: #120a0e;
+  --bg2: #30191d;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(95,177,165,0.18);
+  --btn-border: rgba(95,177,165,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(95,177,165,0.12);
+  --pill-border: rgba(95,177,165,0.28);
+}

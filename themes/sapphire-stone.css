@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Sapphire Stone
+   File: sapphire-stone.css
+========================================================= */
+
+:root {
+  --bg1: #0d1a22;
+  --bg2: #233732;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(139,196,223,0.18);
+  --btn-border: rgba(139,196,223,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(139,196,223,0.12);
+  --pill-border: rgba(139,196,223,0.28);
+}
