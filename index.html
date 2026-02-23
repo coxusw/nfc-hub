@@ -1,0 +1,200 @@
+<!doctype html>
+<!-- =========================================================
+  NFC HUB (Wildcard Subdomains) — Single GitHub Pages site
+  =========================================================
+
+  ✅ EDIT THESE (once)
+  -------------------
+  1) BRAND_DOMAIN_BASE:
+       Example: card.crestedcritters.com
+  2) DEFAULT_THEME:
+       Used if client JSON doesn't specify a theme.
+  3) DATA_PATH:
+       Where client JSON files live (default: /data/clients/{slug}.json)
+
+  HOW IT WORKS
+  ------------
+  - Wildcard DNS points:
+      *.card.crestedcritters.com  →  yourusername.github.io
+  - Every subdomain loads THIS same site.
+  - This page reads location.hostname, extracts the slug, then loads:
+      /data/clients/{slug}.json
+
+  Example:
+    sam.card.crestedcritters.com → loads /data/clients/sam.json
+========================================================= -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NFC Card</title>
+  <meta name="description" content="Tap to view contact info and links." />
+
+  <link id="themeStylesheet" rel="stylesheet" href="./themes/theme-01-neon-dark.css" />
+  <link rel="icon" href="./logo.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <main class="wrap">
+    <section class="card">
+
+      <header class="hero">
+        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
+          <img class="logo" id="logoImg" src="./logo.jpg" alt="Business logo" />
+        </a>
+
+        <div class="titleblock">
+          <h1 class="brand" id="brand">Loading…</h1>
+          <p class="tagline" id="tagline"></p>
+        </div>
+      </header>
+
+      <nav class="links" aria-label="Primary links">
+        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
+      </nav>
+
+      <section class="section">
+        <h2>About</h2>
+        <p id="about"></p>
+      </section>
+
+      <section class="section">
+        <h2>Contact info</h2>
+
+        <div class="contact-grid">
+          <div class="contact-item">
+            <div class="label">Name</div>
+            <div class="value" id="contactName"></div>
+          </div>
+
+          <div class="contact-item">
+            <div class="label">Phone</div>
+            <div class="value"><a id="contactPhone" href="#"></a></div>
+          </div>
+
+          <div class="contact-item">
+            <div class="label">Email</div>
+            <div class="value"><a id="contactEmail" href="#"></a></div>
+          </div>
+        </div>
+
+        <div class="quick-actions" aria-label="Quick actions">
+          <a class="pill" id="pillCall" href="#">Call</a>
+          <a class="pill" id="pillText" href="#">Text</a>
+          <a class="pill" id="pillEmail" href="#">Email</a>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
+      </footer>
+
+    </section>
+  </main>
+
+  <script>
+    // =========================================================
+    // ✅ EDIT THESE (global settings)
+    // =========================================================
+    const BRAND_DOMAIN_BASE = "card.crestedcritters.com"; // <-- change to yours
+    const DEFAULT_THEME = "./themes/theme-01-neon-dark.css";
+    const DATA_PATH = (slug) => `./data/clients/${slug}.json`;
+
+    const $ = (id) => document.getElementById(id);
+
+    function getSlugFromHostname(hostname) {
+      const lower = hostname.toLowerCase();
+
+      // If testing on github.io, show sample client
+      if (lower.endsWith(".github.io")) return "sample";
+
+      // Base domain (no client slug yet) → show sample for now
+      if (lower === BRAND_DOMAIN_BASE) return "sample";
+
+      // Subdomain of the base → take first label as slug
+      if (lower.endsWith("." + BRAND_DOMAIN_BASE)) {
+        const slug = lower.slice(0, lower.length - ("." + BRAND_DOMAIN_BASE).length);
+        return slug.split(".")[0];
+      }
+
+      return "sample";
+    }
+
+    async function loadClient(slug) {
+      const res = await fetch(DATA_PATH(slug), { cache: "no-store" });
+      if (!res.ok) throw new Error(`Client "${slug}" not found (${res.status})`);
+      return res.json();
+    }
+
+    function applyClient(c) {
+      // Theme
+      const themeHref = c.theme ? `./themes/${c.theme}` : DEFAULT_THEME;
+      $("themeStylesheet").setAttribute("href", themeHref);
+
+      // Title + footer
+      document.title = c.businessName || "NFC Card";
+      $("brand").textContent = c.businessName || "";
+      $("footerBrand").textContent = c.businessName || "";
+
+      $("tagline").textContent = c.tagline || "";
+      $("about").textContent = c.about || "";
+
+      // Logo + logo link
+      $("logoImg").src = c.logoPath || "./logo.jpg";
+      $("logoImg").alt = (c.businessName ? c.businessName + " logo" : "Business logo");
+      $("logoLink").href = (c.links && c.links.website) ? c.links.website : "#";
+
+      // Link buttons
+      $("btnWebsite").href = c.links?.website || "#";
+      $("btnFacebook").href = c.links?.facebook || "#";
+      $("btnTikTok").href = c.links?.tiktok || "#";
+
+      // vCard
+      $("btnVcard").href = c.vcardPath || "./contact.vcf";
+
+      // Contact
+      $("contactName").textContent = c.contact?.name || "";
+      const phoneE164 = c.contact?.phoneE164 || "";
+      const phoneDisplay = c.contact?.phoneDisplay || phoneE164;
+
+      $("contactPhone").href = phoneE164 ? `tel:${phoneE164}` : "#";
+      $("contactPhone").textContent = phoneDisplay || "";
+
+      const email = c.contact?.email || "";
+      $("contactEmail").href = email ? `mailto:${email}` : "#";
+      $("contactEmail").textContent = email || "";
+
+      // Quick actions
+      $("pillCall").href = phoneE164 ? `tel:${phoneE164}` : "#";
+      $("pillText").href = phoneE164 ? `sms:${phoneE164}` : "#";
+      $("pillEmail").href = email ? `mailto:${email}` : "#";
+    }
+
+    async function main() {
+      $("year").textContent = new Date().getFullYear();
+
+      const slug = getSlugFromHostname(location.hostname);
+
+      try {
+        const client = await loadClient(slug);
+        applyClient(client);
+      } catch (err) {
+        console.error(err);
+        const client = await loadClient("sample");
+        applyClient(client);
+        $("brand").textContent = "Client not found";
+        $("tagline").textContent = `No card configured for "${slug}". Showing sample.`;
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

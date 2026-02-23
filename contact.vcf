@@ -1,0 +1,11 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Last;First;;;
+FN:First Last
+ORG:Business Name
+TITLE:Owner
+TEL;TYPE=CELL:+11234567890
+EMAIL:you@domain.com
+URL:https://example.com
+NOTE:Tap • Save • Connect
+END:VCARD
