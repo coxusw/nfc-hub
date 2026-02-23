@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Charcoal Trail
+   File: charcoal-trail.css
+========================================================= */
+
+:root {
+  --bg1: #16151c;
+  --bg2: #2e2038;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(217,162,209,0.18);
+  --btn-border: rgba(217,162,209,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(217,162,209,0.12);
+  --pill-border: rgba(217,162,209,0.28);
+}

@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Emerald Flux
+   File: emerald-flux.css
+========================================================= */
+
+:root {
+  --bg1: #161e0d;
+  --bg2: #253219;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(170,119,192,0.18);
+  --btn-border: rgba(170,119,192,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(170,119,192,0.12);
+  --pill-border: rgba(170,119,192,0.28);
+}

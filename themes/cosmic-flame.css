@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Cosmic Flame
+   File: cosmic-flame.css
+========================================================= */
+
+:root {
+  --bg1: #121517;
+  --bg2: #302c2f;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(209,158,213,0.18);
+  --btn-border: rgba(209,158,213,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(209,158,213,0.12);
+  --pill-border: rgba(209,158,213,0.28);
+}

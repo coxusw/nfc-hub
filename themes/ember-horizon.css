@@ -1,0 +1,22 @@
+/* =========================================================
+   Theme: Ember Horizon
+   File: ember-horizon.css
+========================================================= */
+
+:root {
+  --bg1: #1e0e1d;
+  --bg2: #2a2a2c;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #e6e6f0;
+  --muted: #9696aa;
+
+  --btn-text: var(--text);
+  --btn-bg: rgba(112,201,198,0.18);
+  --btn-border: rgba(112,201,198,0.38);
+
+  --pill-text: var(--text);
+  --pill-bg: rgba(112,201,198,0.12);
+  --pill-border: rgba(112,201,198,0.28);
+}
