@@ -1,11 +1,11 @@
 BEGIN:VCARD
 VERSION:3.0
-N:Last;First Last;;;
-FN:First Last
+N:Last;Christopher A Cox;;;
+FN:Christopher A Cox
 ORG:test
 TITLE:Owner
 TEL;TYPE=CELL:123456789
-EMAIL:you@domain.com
-URL:https://example.com
+EMAIL:chrisuswcox@gmail.com
+URL:crestedcritters.com
 NOTE:test
 END:VCARD
