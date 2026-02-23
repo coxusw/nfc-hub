@@ -1,11 +1,11 @@
 BEGIN:VCARD
 VERSION:3.0
-N:Last;Christopher A Cox;;;
+N:;Christopher A Cox;;;
 FN:Christopher A Cox
 ORG:test112
 TITLE:Owner
 TEL;TYPE=CELL:123456789
 EMAIL:chrisuswcox@gmail.com
-URL:crestedcritters.com
+URL:https://crestedcritters.com
 NOTE:test
 END:VCARD
