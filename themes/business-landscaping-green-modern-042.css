@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Business · Landscaping Green · Modern
+   File: business-landscaping-green-modern-042.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #131f16;
+  --bg2: #1e3327;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.12);
+
+  --text: #eef2ff;
+  --muted: #b6c2ff;
+
+  --btn-text: #eef2ff;
+  --btn-bg: rgba(54,226,168,0.18);
+  --btn-border: rgba(54,226,168,0.38);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(54,226,168,0.12);
+  --pill-border: rgba(54,226,168,0.28);
+}
+
+
