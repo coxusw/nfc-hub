@@ -4,7 +4,7 @@
   "tagline": "test",
   "about": "test",
   "links": {
-    "website": "crestedcritters.com",
+    "website": "https://crestedcritters.com",
     "facebook": "",
     "tiktok": ""
   },
@@ -14,7 +14,7 @@
     "phoneDisplay": "123456789",
     "email": "chrisuswcox@gmail.com"
   },
-  "theme": "theme-17-cyberpunk.css",
+  "theme": "arctic-crystal.css",
   "logoPath": "/logo.jpg",
   "vcardPath": "/vcards/test1.vcf"
 }
