@@ -1,0 +1,151 @@
+/* =========================================================
+   theme-13-lavender.css
+   =========================================================
+   ✅ EDIT THESE (theme)
+   --------------------
+   Change ONLY the :root variables to adjust the look.
+========================================================= */
+:root{
+  --bg-1:#0f1026;
+  --bg-2:#1a1436;
+  --bg-3:#090a18;
+  --bg-spot-1:rgba(167,139,250,0.40);
+  --bg-spot-2:rgba(192,132,252,0.32);
+  --bg-spot-3:rgba(216,180,254,0.22);
+
+  --card: rgba(30,41,59,0.85);
+  --blur: 18px;
+  --border: rgba(255,255,255,0.14);
+  --shadow: 0 18px 60px rgba(0,0,0,0.30);
+
+  --text-main:#f5f3ff;
+  --text-muted:#ddd6fe;
+
+  --radius-card:22px;
+  --radius-logo:18px;
+  --radius-btn:14px;
+  --radius-row:14px;
+
+  --logo-border: rgba(255,255,255,0.20);
+  --logo-shadow: 0 0 18px rgba(0,0,0,0.15);
+
+  --brand-gradient: linear-gradient(90deg,#22c55e,#06b6d4,#a78bfa);
+  --brand-color:#f5f3ff;
+
+  --btn-text:#0b1020;
+  --btn-bg:linear-gradient(90deg,#a78bfa,#c084fc);
+  --btn-border: rgba(255,255,255,0.0);
+  --btn-hover-shadow: 0 16px 32px rgba(0,0,0,0.30);
+  --btn-active-shadow: 0 0 28px rgba(255,255,255,0.16);
+
+  --vcard-bg:linear-gradient(90deg,#d8b4fe,#a78bfa);
+
+  --contact-bg: rgba(255,255,255,0.05);
+  --h2-color: #ddd6fe;
+  --link-color: #ddd6fe;
+
+  --pill-text:#f5f3ff;
+  --pill-bg: rgba(255,255,255,0.08);
+  --pill-border: rgba(255,255,255,0.14);
+  --pill-hover-shadow: 0 0 18px rgba(255,255,255,0.12);
+  --pill-active-shadow: 0 0 26px rgba(255,255,255,0.14);
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 20% 20%, var(--bg-spot-1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, var(--bg-spot-2) 0%, transparent 42%),
+    radial-gradient(circle at 45% 85%, var(--bg-spot-3) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2), var(--bg-3));
+}
+
+.wrap{ display:flex; justify-content:center; align-items:center; padding:40px 16px; }
+
+.card{
+  width:100%;
+  max-width:550px;
+  background: var(--card);
+  backdrop-filter: blur(var(--blur));
+  border-radius: var(--radius-card);
+  border:1px solid var(--border);
+  padding:25px;
+  box-shadow: var(--shadow);
+  animation: fadeInUp .6s ease;
+}
+
+@keyframes fadeInUp{ from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:translateY(0);} }
+
+.hero{ display:flex; align-items:center; gap:18px; margin-bottom:18px; }
+.logo-link{ display:inline-flex; border-radius: var(--radius-logo); }
+.logo{ width:90px; height:90px; border-radius: var(--radius-logo); object-fit:cover; border:2px solid var(--logo-border); box-shadow: var(--logo-shadow); }
+
+.brand{
+  margin:0;
+  font-family: Fraunces, Georgia, serif;
+  font-weight:600;
+  font-size:28px;
+  background: var(--brand-gradient);
+  color: var(--brand-color);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.tagline{ margin:6px 0 0 0; color: var(--text-muted); }
+
+.links{ display:flex; flex-direction:column; gap:12px; margin-bottom:18px; }
+
+.btn{
+  padding:14px;
+  border-radius: var(--radius-btn);
+  text-decoration:none;
+  text-align:center;
+  font-weight:700;
+  color: var(--btn-text);
+  background: var(--btn-bg);
+  border:1px solid var(--btn-border);
+  transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover{ transform: translateY(-2px); box-shadow: var(--btn-hover-shadow); }
+
+.btn:active{ transform: translateY(0px) scale(0.99); filter: brightness(1.06); box-shadow: var(--btn-active-shadow); }
+
+.btn.vcard{ background: var(--vcard-bg); }
+
+.section{ margin-top:18px; }
+.section h2{ margin:0 0 8px 0; font-family: Fraunces, Georgia, serif; font-size:18px; color: var(--h2-color); }
+.section p{ margin:0; color: var(--text-muted); line-height:1.55; }
+
+.contact-item{ background: var(--contact-bg); padding:12px; border-radius: var(--radius-row); border:1px solid var(--border); margin-bottom:10px; }
+.label{ font-size:12px; color: var(--text-muted); }
+.value{ font-size:15px; font-weight:700; }
+.value a{ color: var(--link-color); text-decoration:none; }
+.value a:hover{ text-decoration:underline; }
+
+.quick-actions{ display:flex; gap:10px; margin-top:14px; justify-content:center; align-items:center; flex-wrap:wrap; }
+
+.pill{
+  padding:9px 14px;
+  border-radius:999px;
+  text-decoration:none;
+  color: var(--pill-text);
+  background: var(--pill-bg);
+  border:1px solid var(--pill-border);
+  font-size:14px;
+  min-width:80px;
+  text-align:center;
+  transition: transform .18s ease, box-shadow .25s ease, filter .25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pill:hover{ transform: translateY(-1px); box-shadow: var(--pill-hover-shadow); }
+.pill:active{ transform: translateY(0px) scale(0.98); filter: brightness(1.06); box-shadow: var(--pill-active-shadow); }
+
+.footer{ text-align:center; margin-top:20px; color: var(--text-muted); }
