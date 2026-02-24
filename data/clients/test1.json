@@ -15,6 +15,6 @@
     "email": "Test"
   },
   "theme": "animated-aurora-drift.css",
-  "logoPath": "/logo.jpg",
+  "logoPath": "/assets/logos/test1.png",
   "vcardPath": "/vcards/test1.vcf"
 }
