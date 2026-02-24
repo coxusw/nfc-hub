@@ -114,11 +114,12 @@
       </header>
 
       <nav class="links" aria-label="Primary links">
-        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
-        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
-        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
-        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
-      </nav>
+  <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+  <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+  <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+  <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
+</nav>
 
       <section class="section">
         <h2>About</h2>
@@ -205,8 +206,9 @@ function main(){
   const about = getParam("about") || "";
 
   const website = normalizeUrl(getParam("website"));
-  const facebook = normalizeUrl(getParam("facebook"));
-  const tiktok = normalizeUrl(getParam("tiktok"));
+const facebook = normalizeUrl(getParam("facebook"));
+const instagram = normalizeUrl(getParam("instagram"));
+const tiktok = normalizeUrl(getParam("tiktok"));
 
   const name = getParam("name") || "Your Name";
   const phone = (getParam("phone") || "").trim();
@@ -220,6 +222,7 @@ function main(){
 
   $("btnWebsite").href = website || "#";
   $("btnFacebook").href = facebook || "#";
+  $("btnInstagram").href = instagram || "#";
   $("btnTikTok").href = tiktok || "#";
   $("logoLink").href = website || "#";
 
