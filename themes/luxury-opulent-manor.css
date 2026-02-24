@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Luxury · Opulent Manor (emerald-gold)
+   File: luxury-opulent-manor-14.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #112116;
+  --bg2: #1b352a;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.14);
+
+  --text: #eef2ff;
+  --muted: #cbd5e1;
+
+  --btn-text: #0b1020;
+  --btn-bg: linear-gradient(90deg,#3ee977,#43e4d6);
+  --btn-border: rgba(255,255,255,0.0);
+
+  --pill-text: #eef2ff;
+  --pill-bg: rgba(62,233,119,0.1);
+  --pill-border: rgba(67,228,214,0.22);
+}
+
+

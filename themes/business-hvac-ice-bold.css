@@ -1,0 +1,25 @@
+/* =========================================================
+   Theme: Business · HVAC Ice · Bold
+   File: business-hvac-ice-bold-073.css
+   Compatible with base.css (variable-driven)
+========================================================= */
+
+:root {
+  --bg1: #eff4f5;
+  --bg2: #dee7ec;
+  --card: rgba(15,23,42,.04);
+  --border: rgba(15,23,42,.12);
+
+  --text: #0b1020;
+  --muted: #334155;
+
+  --btn-text: #0b1020;
+  --btn-bg: rgba(54,125,226,0.1);
+  --btn-border: rgba(54,125,226,0.26);
+
+  --pill-text: #0b1020;
+  --pill-bg: rgba(54,125,226,0.08);
+  --pill-border: rgba(54,125,226,0.2);
+}
+
+
