@@ -1,0 +1,20 @@
+{
+  "slug": "test1",
+  "businessName": "test112",
+  "tagline": "test",
+  "about": "test",
+  "links": {
+    "website": "https://crestedcritters.com",
+    "facebook": "https://www.facebook.com/people/Crested-Critters/61576805665752/",
+    "tiktok": "https://www.tiktok.com/@crested.critters"
+  },
+  "contact": {
+    "name": "Test",
+    "phoneE164": "123456789",
+    "phoneDisplay": "123456789",
+    "email": "Test"
+  },
+  "theme": "animated-aurora-drift.css",
+  "logoPath": "/assets/logos/test1.png",
+  "vcardPath": "/vcards/test1.vcf"
+}
