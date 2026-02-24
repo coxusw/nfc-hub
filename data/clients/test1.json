@@ -9,12 +9,12 @@
     "tiktok": ""
   },
   "contact": {
-    "name": "Christopher A Cox",
+    "name": "Test",
     "phoneE164": "123456789",
     "phoneDisplay": "123456789",
-    "email": "chrisuswcox@gmail.com"
+    "email": "Test"
   },
-  "theme": "arctic-crystal.css",
+  "theme": "animated-aurora-drift.css",
   "logoPath": "/logo.jpg",
   "vcardPath": "/vcards/test1.vcf"
 }
