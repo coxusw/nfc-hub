@@ -1,0 +1,21 @@
+{
+  "slug": "crested-critters",
+  "businessName": "Crested Critters",
+  "tagline": "IsoPods and Bio-Active Supplies",
+  "about": "Crested Critters was officially established in 2025 to provided premium isopods, botanicals, and accessories designed to support thriving bioactive enclosures. If you have any questions please do not hesitate to reach out.",
+  "links": {
+    "website": "https://www.CrestedCritters.com",
+    "facebook": "",
+    "instagram": "",
+    "tiktok": ""
+  },
+  "contact": {
+    "name": "Chris",
+    "phoneE164": "+12192526944",
+    "phoneDisplay": "219-252-6944",
+    "email": "Contact_Us@crestedcritters.com"
+  },
+  "theme": "animated-ember-flicker.css",
+  "vcardPath": "/vcards/crested-critters.vcf",
+  "logoPath": "/assets/logos/crested-critters.png"
+}
