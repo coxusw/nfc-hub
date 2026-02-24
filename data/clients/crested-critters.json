@@ -16,6 +16,6 @@
     "email": "Contact_Us@crestedcritters.com"
   },
   "theme": "animated-ember-flicker.css",
-  "logoPath": "/logos/crested-critters.jpg",
-  "vcardPath": "/vcards/crested-critters.vcf"
+  "vcardPath": "/vcards/crested-critters.vcf",
+  "logoPath": "/assets/logos/crested-critters.png"
 }
