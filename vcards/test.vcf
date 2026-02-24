@@ -1,8 +1,0 @@
-BEGIN:VCARD
-VERSION:3.0
-FN:Test
-ORG:Test
-TEL;TYPE=CELL:123456789
-EMAIL;TYPE=INTERNET:chrisuswcox@gmail.com
-URL:https://Www.google.com
-END:VCARD
