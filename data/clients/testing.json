@@ -9,7 +9,7 @@
     "instagram": "https://Testing",
     "tiktok": "https://Testing",
     "linkedin": "",
-    "paypal": "https://Testing",
+    "paypal": "",
     "cashapp": "https://Testing",
     "venmo": "https://Testing"
   },
@@ -20,6 +20,5 @@
     "email": "chrisuswcox@gmail.com"
   },
   "theme": "animated-aurora-drift.css",
-  "logoPath": "/logos/testing.jpg",
   "vcardPath": "/vcards/testing.vcf"
 }
