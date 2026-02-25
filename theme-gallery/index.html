@@ -1,32 +1,27 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Theme Gallery + Client Intake (Option 1: Google Form)
-  ---------------------------------------------------------
-  ✅ EDIT THESE AT THE TOP (required)
-  1) GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
-     - Used to fetch your /themes folder listing via GitHub API
-  2) BRAND_HOST
-     - Your live Pages host for preview links (e.g. card.crestedcritters.com)
-  3) GOOGLE_FORM_PREFILL_URL (optional but recommended)
-     - A Google Form "prefill" link. We will append &THEME_PARAM=...
-     - If you don't have it yet, leave blank and the button will be hidden.
+  NFC Theme Gallery (No search bar) + Paywall handoff
+  File: /theme-gallery/index.html
 
-  HOW TO GET A PREFILL LINK
-  1) In Google Forms → ⋮ menu → "Get pre-filled link"
-  2) Fill the form with placeholders (including a Theme field)
-  3) Click "Get link" and paste it into GOOGLE_FORM_PREFILL_URL
-  4) Set THEME_QUERY_KEY to the theme field key
+  What it does:
+  - Lists /themes/*.css automatically via GitHub API
+  - Shows a thumbnail preview (iframe) for each theme
+  - Category dropdown filters by filename prefix:
+      luxury-*, business-*, animated-*, other
+  - "Use this theme" sends user to /pay/ with ?theme=...&slug=...
+    - If URL already has ?slug=... it uses it
+    - Else it prompts the user to enter a slug
 
-  NOTE
-  - This is a static page you can host in your GitHub Pages repo.
-  - It requires your repo to be public (so GitHub API can list /themes without a token).
+  REQUIREMENTS:
+  - Repo must be PUBLIC (GitHub API listing works without token)
+  - /preview/ route must exist (your preview/index.html)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NFC Theme Gallery</title>
-  <meta name="description" content="Browse and preview themes for your NFC contact page." />
+  <meta name="description" content="Browse themes for your NFC contact page." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -52,21 +47,22 @@
     }
     header{ padding:28px 18px 14px; text-align:center; }
     h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:32px; }
-    .sub{margin:10px auto 0; max-width:900px; color:var(--muted); line-height:1.5}
-    .wrap{max-width:1100px; margin:0 auto; padding:14px 16px 40px}
+    .sub{margin:10px auto 0; max-width:1000px; color:var(--muted); line-height:1.5}
+    .wrap{max-width:1150px; margin:0 auto; padding:14px 16px 40px}
+
     .controls{
       display:flex; gap:10px; flex-wrap:wrap;
       align-items:center; justify-content:center;
       margin:14px 0 18px;
     }
-    input, select{
+    select{
       background:rgba(0,0,0,.22);
       border:1px solid var(--border);
       color:var(--text);
       padding:10px 12px;
       border-radius:12px;
       outline:none;
-      min-width:220px;
+      min-width:260px;
     }
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
@@ -75,13 +71,13 @@
       background:rgba(255,255,255,.08);
       color:var(--text);
       text-decoration:none;
-      font-weight:600;
+      font-weight:700;
       cursor:pointer;
       user-select:none;
     }
     .grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
       gap:14px;
     }
     .card{
@@ -91,24 +87,7 @@
       padding:14px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
-    .name{ font-weight:700; margin:0 0 10px; font-size:14px; word-break:break-word; }
-
-    /* Mini live preview frame */
-    .thumb{
-      width: 100%;
-      height: 310px; /* adjust taller/shorter if you want */
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(0,0,0,.20);
-      margin-bottom: 10px;
-    }
-    .thumb iframe{
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
-
+    .name{ font-weight:800; margin:0 0 8px; font-size:14px; word-break:break-word; }
     .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
     .chip{
       font-size:12px; padding:6px 10px; border-radius:999px;
@@ -116,22 +95,40 @@
       border:1px solid rgba(255,255,255,.10);
       color:var(--muted);
     }
-    .row{display:flex; gap:10px; flex-wrap:wrap;}
+
+    /* Thumbnail preview */
+    .thumb{
+      width:100%;
+      height:320px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.20);
+    }
+    .thumb iframe{
+      width:100%;
+      height:100%;
+      border:0;
+    }
+
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
     .btn{
-      flex:1; min-width:120px; text-align:center;
+      flex:1; min-width:130px; text-align:center;
       padding:10px 12px; border-radius:12px;
       border:1px solid rgba(255,255,255,.16);
       background:rgba(255,255,255,.10);
       color:var(--text);
       text-decoration:none;
-      font-weight:700;
+      font-weight:800;
       cursor:pointer;
     }
     .btn.primary{
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
       border-color:rgba(34,197,94,.28);
     }
+
     .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
+    #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
     footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
   </style>
@@ -141,7 +138,7 @@
   <header>
     <h1>Choose a theme</h1>
     <p class="sub">
-      Preview a theme with sample content, then click <b>Use this theme</b> to open the intake form (or copy the theme name).
+      Browse themes and see a live thumbnail preview. When ready, click <b>Use this theme</b> to continue.
     </p>
   </header>
 
@@ -154,11 +151,10 @@
         <option value="animated">Animated</option>
         <option value="other">Other</option>
       </select>
-      <button class="pill" id="btnReload">Reload list</button>
+      <button class="pill" id="btnReload" type="button">Reload list</button>
     </div>
 
-    <div id="status" class="sub" style="text-align:center; margin:0 0 14px;"></div>
-
+    <div id="status"></div>
     <section class="grid" id="grid"></section>
 
     <footer>
@@ -168,33 +164,27 @@
 
 <script>
 /* =========================================================
-   ✅ EDIT HERE (required)
+   ✅ EDIT HERE (your repo + host)
 ========================================================= */
-const GITHUB_OWNER = "coxusw";
-const GITHUB_REPO  = "nfc-hub";
+const GITHUB_OWNER  = "coxusw";
+const GITHUB_REPO   = "nfc-hub";
 const GITHUB_BRANCH = "main";
 
-/* Your live Pages host for previews (custom domain) */
+/* Your live Pages host (custom domain) */
 const BRAND_HOST = "card.crestedcritters.com";
-
-/* Optional: Google Form prefill link.
-   Leave "" to hide "Use this theme" buttons until your form is ready.
-*/
-const GOOGLE_FORM_PREFILL_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url&entry.2114451287=test-theme.css";
-
-/* Replace with your Theme field entry key, e.g. "entry.987654321"
-   You can find this in your Google Form pre-filled link.
-*/
-const THEME_QUERY_KEY = "entry.2114451287";
 /* ========================================================= */
 
 const $ = (id) => document.getElementById(id);
 
-function classify(name){
-  const n = name.toLowerCase();
-  if(n.startsWith("luxury-")) return "luxury";
-  if(n.startsWith("business-")) return "business";
-  if(n.startsWith("animated-")) return "animated";
+function getParam(name){
+  return new URLSearchParams(location.search).get(name) || "";
+}
+
+function classify(file){
+  const n = file.toLowerCase();
+  if (n.startsWith("luxury-")) return "luxury";
+  if (n.startsWith("business-")) return "business";
+  if (n.startsWith("animated-")) return "animated";
   return "other";
 }
 
@@ -205,17 +195,17 @@ function humanize(file){
     .replace(/\b\w/g, (m)=>m.toUpperCase());
 }
 
-function previewUrl(file){
+function previewUrl(themeFile){
   const u = new URL(`https://${BRAND_HOST}/preview/`);
-  u.searchParams.set("theme", file);
+  u.searchParams.set("theme", themeFile);
+  u.searchParams.set("embed", "1"); // hides topbar, tighter layout
 
-  // Sample content for preview only
+  // Sample content for thumbnail preview only
   u.searchParams.set("businessName", "Your Business Name");
   u.searchParams.set("tagline", "Tagline or short promise");
-  u.searchParams.set("about", "This is a preview. Your real info will go here.");
+  u.searchParams.set("about", "This is a preview thumbnail.");
   u.searchParams.set("website", "https://example.com");
   u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("instagram", "https://instagram.com/");
   u.searchParams.set("tiktok", "https://tiktok.com/");
   u.searchParams.set("name", "Your Name");
   u.searchParams.set("phone", "+11234567890");
@@ -223,9 +213,27 @@ function previewUrl(file){
   return u.toString();
 }
 
-function formUrl(themeFile){
+function previewFullUrl(themeFile){
+  const u = new URL(`https://${BRAND_HOST}/preview/`);
+  u.searchParams.set("theme", themeFile);
+
+  // Sample content for full preview
+  u.searchParams.set("businessName", "Your Business Name");
+  u.searchParams.set("tagline", "Tagline or short promise");
+  u.searchParams.set("about", "This is a full preview. Your real info will go here.");
+  u.searchParams.set("website", "https://example.com");
+  u.searchParams.set("facebook", "https://facebook.com/");
+  u.searchParams.set("tiktok", "https://tiktok.com/");
+  u.searchParams.set("name", "Your Name");
+  u.searchParams.set("phone", "+11234567890");
+  u.searchParams.set("email", "you@example.com");
+  return u.toString();
+}
+
+function payUrl(themeFile, slug){
   const u = new URL(`https://${BRAND_HOST}/pay/`);
   u.searchParams.set("theme", themeFile);
+  if (slug) u.searchParams.set("slug", slug);
   return u.toString();
 }
 
@@ -245,11 +253,11 @@ async function fetchThemes(){
 
 function render(files){
   const cat = $("category").value;
+  const slugFromUrl = (getParam("slug") || "").trim();
 
   const filtered = files.filter(f=>{
     const c = classify(f);
     if(cat !== "all" && c !== cat) return false;
-    if(q && !f.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -262,53 +270,42 @@ function render(files){
 
     const el = document.createElement("div");
     el.className = "card";
-
-    // Mini live preview: we use embed=1 to hide preview topbar (you’ll add embed mode in preview/index.html)
-    const embedSrc = `${previewUrl(f)}&embed=1`;
-
     el.innerHTML = `
       <div class="name">${title}</div>
-
-      <div class="thumb">
-        <iframe
-          src="${embedSrc}"
-          loading="lazy"
-          sandbox="allow-scripts allow-same-origin"
-          referrerpolicy="no-referrer"
-          title="Preview ${title}">
-        </iframe>
-      </div>
-
       <div class="chips">
         <span class="chip">${c}</span>
-        <span class="chip">${f}</span>
+        <span class="chip"><code>${f}</code></span>
+      </div>
+
+      <div class="thumb">
+        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
       </div>
 
       <div class="row">
-        <a class="btn primary" href="${previewUrl(f)}" target="_blank" rel="noopener">Full Preview</a>
-        ${GOOGLE_FORM_PREFILL_URL
-          ? `<a class="btn" href="${formUrl(f)}" target="_blank" rel="noopener">Use this theme</a>`
-          : `<button class="btn" data-copy="${f}">Copy name</button>`}
+        <a class="btn" href="${previewFullUrl(f)}" target="_blank" rel="noopener">Preview</a>
+        <button class="btn primary" data-use="${encodeURIComponent(f)}">Use this theme</button>
       </div>
 
       <div class="meta">
-        Mini preview is live (lazy-loaded). Click Full Preview to interact with the full page.
+        “Use this theme” continues to activation/payment, then your intake form.
       </div>
     `;
     grid.appendChild(el);
   }
 
-  // Copy handlers
-  grid.querySelectorAll("button[data-copy]").forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-      const val = btn.getAttribute("data-copy");
-      try{
-        await navigator.clipboard.writeText(val);
-        btn.textContent = "Copied!";
-        setTimeout(()=>btn.textContent="Copy name", 1200);
-      }catch{
-        alert("Clipboard blocked. Theme filename: " + val);
+  // Use handlers
+  grid.querySelectorAll("button[data-use]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
+      let slug = slugFromUrl;
+
+      if(!slug){
+        slug = prompt("Enter your desired slug (example: sam, john-doe, mybusiness):", "");
+        slug = (slug || "").trim().toLowerCase();
       }
+
+      // Send them to paywall with theme + slug (slug optional)
+      location.href = payUrl(theme, slug);
     });
   });
 
