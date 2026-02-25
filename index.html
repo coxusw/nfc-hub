@@ -317,15 +317,17 @@ $("logoLink").removeAttribute("href");
 
 /* Links */
 
-setLinkOrHide("btnWebsite",c.links?.website);
+setLinkOrHide("btnWebsite",   c.links?.website);
+setLinkOrHide("btnFacebook",  c.links?.facebook);
+setLinkOrHide("btnInstagram", c.links?.instagram);
+setLinkOrHide("btnTikTok",    c.links?.tiktok);
 
-setLinkOrHide("btnFacebook",c.links?.facebook);
+setLinkOrHide("btnLinkedIn",  c.links?.linkedin);
+setLinkOrHide("btnPayPal",    c.links?.paypal);
+setLinkOrHide("btnCashApp",   c.links?.cashapp);
+setLinkOrHide("btnVenmo",     c.links?.venmo);
 
-setLinkOrHide("btnInstagram",c.links?.instagram);
-
-setLinkOrHide("btnTikTok",c.links?.tiktok);
-
-setRawOrHide("btnVcard",c.vcardPath);
+setLinkOrHide("btnVcard", c.vcardPath || "");
 
 /* Contact */
 
