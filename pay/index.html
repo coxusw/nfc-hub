@@ -1,1 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Activate Your NFC Profile</title>
+  <style>
+    :root{ --bg:#050816; --fg:#eef2ff; --mut:#b6c2ff; --card:rgba(255,255,255,.06); --bd:rgba(255,255,255,.12); }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:linear-gradient(180deg,#050816,#0b1020,#050816); color:var(--fg); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;}
+    .card{width:min(560px,100%); background:var(--card); border:1px solid var(--bd); border-radius:18px; padding:16px;}
+    h1{margin:0 0 6px 0; font-size:22px;}
+    p{margin:8px 0; color:var(--mut); line-height:1.45;}
+    label{display:block; margin:12px 0 6px; color:var(--mut); font-size:13px;}
+    input{width:100%; padding:12px; border-radius:12px; border:1px solid var(--bd); background:rgba(0,0,0,.25); color:var(--fg);}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+    .btn{flex:1; min-width:170px; text-align:center; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.10); color:var(--fg); text-decoration:none; font-weight:800; cursor:pointer;}
+    .btn.primary{background:linear-gradient(90deg, rgba(34,197,94,.25), rgba(6,182,212,.18)); border-color:rgba(34,197,94,.30);}
+    .small{font-size:12px; color:var(--mut); margin-top:10px;}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px}
+    .ok{color:#86efac}
+    .bad{color:#fca5a5}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Activate your NFC profile</h1>
+    <p>Theme selected: <code id="themeName">(loading)</code></p>
 
+    <label>Preferred slug (your link will be /slug)</label>
+    <input id="slug" placeholder="e.g. samantha or sam-custom" />
+    <div class="small" id="slugStatus"></div>
+
+    <label>Secret code (optional — skips payment)</label>
+    <input id="code" placeholder="Enter code if you have one" />
+
+    <div class="row">
+      <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">Pay Now</a>
+      <button class="btn" id="continueBtn" disabled>Continue to Form</button>
+    </div>
+
+    <div class="small">
+      If you skip payment with a code, you’ll go straight to the form.
+      If you pay, you must return here and click “Continue to Form” (or we can tighten this flow later).
+    </div>
+  </div>
+
+<script>
+  // ✅ EDIT THESE
+  const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
+  const GOOGLE_FORM_PREFILL_URL = "PASTE_YOUR_GOOGLE_FORM_PREFILL_LINK_HERE";
+
+  // You get these from your Google Form prefill URL:
+  // - theme field key looks like: entry.2114451287
+  // - slug field key looks like: entry.123456789
+  const THEME_QUERY_KEY = "entry.2114451287";
+  const SLUG_QUERY_KEY  = "entry.YOUR_SLUG_KEY_HERE";
+
+  // Simple bypass codes (visible in source; best-effort only)
+  const SECRET_CODES = ["FREE100", "VIP2026"];
+
+  const params = new URLSearchParams(location.search);
+  const theme = (params.get("theme") || "").trim();
+
+  const themeNameEl = document.getElementById("themeName");
+  const slugEl = document.getElementById("slug");
+  const codeEl = document.getElementById("code");
+  const slugStatus = document.getElementById("slugStatus");
+  const payBtn = document.getElementById("payBtn");
+  const continueBtn = document.getElementById("continueBtn");
+
+  themeNameEl.textContent = theme || "(none)";
+  payBtn.href = SQUARE_PAYMENT_LINK;
+
+  function makeSlug(s){
+    return String(s||"").trim().toLowerCase()
+      .replace(/[^a-z0-9-]/g,"-")
+      .replace(/-+/g,"-")
+      .replace(/^-|-$/g,"");
+  }
+
+  async function slugAvailable(slug){
+    const url = `/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
+    const res = await fetch(url, { method:"GET", cache:"no-store" });
+    return res.status === 404; // 404 means available
+  }
+
+  async function updateSlugStatus(){
+    const slug = makeSlug(slugEl.value);
+    if(!slug){
+      slugStatus.textContent = "Enter a slug to continue.";
+      slugStatus.className = "small";
+      continueBtn.disabled = true;
+      return;
+    }
+    slugStatus.textContent = "Checking slug…";
+    slugStatus.className = "small";
+    const ok = await slugAvailable(slug);
+    if(ok){
+      slugStatus.innerHTML = `<span class="ok">✅ "${slug}" is available.</span>`;
+      continueBtn.disabled = false;
+    }else{
+      slugStatus.innerHTML = `<span class="bad">❌ "${slug}" is already taken. Try another.</span>`;
+      continueBtn.disabled = true;
+    }
+  }
+
+  slugEl.addEventListener("input", ()=>{ updateSlugStatus(); });
+
+  continueBtn.addEventListener("click", ()=>{
+    const slug = makeSlug(slugEl.value);
+    if(!slug) return;
+
+    const code = (codeEl.value||"").trim().toUpperCase();
+    const bypass = SECRET_CODES.includes(code);
+
+    // Store chosen values so paid.html can forward later if needed
+    localStorage.setItem("nfc_theme", theme);
+    localStorage.setItem("nfc_slug", slug);
+    localStorage.setItem("nfc_bypass", bypass ? "1" : "0");
+
+    const u = new URL(GOOGLE_FORM_PREFILL_URL);
+    if(theme) u.searchParams.set(THEME_QUERY_KEY, theme);
+    u.searchParams.set(SLUG_QUERY_KEY, slug);
+
+    if(bypass){
+      location.href = u.toString();
+      return;
+    }
+
+    // Paid flow: for now they pay in new tab, then click Continue to Form.
+    // (Later we can verify payment/ref automatically.)
+    location.href = u.toString();
+  });
+
+  updateSlugStatus();
+</script>
+</body>
+</html>
