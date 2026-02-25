@@ -1,18 +1,20 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Hub — Paid Landing
+  NFC Hub — Post-Payment Landing
   File: /pay/paid.html
 
-  What it does:
-  - Receives ?theme=...&slug=...
-  - Sends user to the Google Form with theme + slug prefilled
+  NOTE:
+  This page does NOT verify Square payment.
+  It simply routes to your Google Form with theme+slug prefilled.
+
+  ✅ EDIT:
+  GOOGLE_FORM_URL + keys must match your form.
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Redirecting…</title>
-  <meta name="robots" content="noindex" />
+  <title>Continue Setup</title>
   <style>
     :root{
       --bg1:#050816; --bg2:#0b1020;
@@ -30,81 +32,71 @@
         radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
         linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
       display:flex; align-items:center; justify-content:center;
-      padding:24px 16px;
+      padding:24px 14px;
     }
+    .wrap{width:min(680px,100%)}
     .card{
-      width:min(560px,100%);
       background:var(--card);
       border:1px solid var(--border);
       border-radius:18px;
       padding:18px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
-      text-align:center;
     }
-    h1{margin:0 0 8px 0; font-size:22px}
-    p{margin:0; color:var(--muted); line-height:1.5}
-    .small{margin-top:10px; font-size:12px; color:var(--muted)}
+    h1{margin:0 0 10px 0; font-size:22px}
+    .sub{margin:0 0 14px 0; color:var(--muted); line-height:1.45}
+    .btn{
+      width:100%;
+      display:flex; justify-content:center; align-items:center;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      font-weight:900;
+      text-decoration:none;
+      cursor:pointer;
+    }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
-    a{color:inherit}
+    .small{font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Payment confirmed</h1>
-    <p>Sending you to the intake form…</p>
-    <div class="small">
-      Theme: <code id="dbgTheme"></code> &nbsp; • &nbsp; Slug: <code id="dbgSlug"></code>
-    </div>
-    <div class="small" style="margin-top:12px;">
-      If you aren’t redirected, <a id="link" href="#">click here</a>.
-    </div>
+  <main class="wrap">
+    <section class="card">
+      <h1>Continue setup</h1>
+      <p class="sub">
+        Next step: fill out your details and your profile will go live.
+      </p>
+
+      <a class="btn" id="continueBtn" href="#">Continue to intake form</a>
+
+      <div class="small" style="margin-top:10px;">
+        If you get stuck, return to the theme gallery and try again.
+      </div>
+    </section>
   </main>
 
 <script>
-/* =========================================================
-   ✅ EDIT HERE (already filled with your values)
-========================================================= */
-const GOOGLE_FORM_PREFILL_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_ck72SA/viewform?usp=pp_url";
+/* ✅ EDIT THESE */
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_ck72SA/viewform?usp=pp_url";
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
-/* ========================================================= */
-
-const $ = (id)=>document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function normalizeTheme(t){
-  return (t||"").trim().replace(/^\/?themes\//i,"").replace(/^\/+/,"");
-}
-
-function normalizeSlug(s){
-  return (s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
-}
-
-function formUrl(theme, slug){
-  const u = new URL(GOOGLE_FORM_PREFILL_URL);
+function buildFormUrl(theme, slug){
+  const u = new URL(GOOGLE_FORM_URL);
   if (theme) u.searchParams.set(THEME_QUERY_KEY, theme);
   if (slug)  u.searchParams.set(SLUG_QUERY_KEY, slug);
   return u.toString();
 }
 
-function main(){
-  const theme = normalizeTheme(getParam("theme"));
-  const slug  = normalizeSlug(getParam("slug"));
+const theme = (getParam("theme") || "").trim();
+const slug  = (getParam("slug") || "").trim().toLowerCase();
 
-  $("dbgTheme").textContent = theme || "(none)";
-  $("dbgSlug").textContent  = slug  || "(none)";
-
-  const url = formUrl(theme, slug);
-  $("link").href = url;
-
-  // Redirect quickly
-  setTimeout(()=>{ location.href = url; }, 350);
-}
-
-main();
+document.getElementById("continueBtn").href = buildFormUrl(theme, slug);
 </script>
 </body>
 </html>
