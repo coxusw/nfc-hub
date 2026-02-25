@@ -2,7 +2,6 @@ BEGIN:VCARD
 VERSION:3.0
 FN:Testing
 ORG:Testing
-TEL;TYPE=CELL:123456789
 EMAIL;TYPE=INTERNET:chrisuswcox@gmail.com
 URL:https://Testing
 END:VCARD
