@@ -1,413 +1,335 @@
 <!doctype html>
 <!-- =========================================================
-  NFC HUB — Root Card Loader (Path-based clients)
+  NFC HUB (Path/Query-based) — Single GitHub Pages site
   =========================================================
 
-  Loads client JSON from:
+  Uses URLs like:
+    https://card.crestedcritters.com/?client=test
+    https://card.crestedcritters.com/test   (if SPA restore is set)
+
+  Loads:
     /data/clients/{slug}.json
-
-  Example URLs:
-    /john
-    /sam
-    /test
-
 ========================================================= -->
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NFC Card</title>
+  <meta name="description" content="Tap to view contact info and links." />
 
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <!-- Base layout + theme -->
+  <link rel="stylesheet" href="/base.css" />
+  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css" />
+  <link rel="icon" href="/logo.jpg" />
 
-<title>NFC Card</title>
-
-<link rel="stylesheet" href="/base.css"/>
-
-<!-- Theme stylesheet (overridden dynamically) -->
-<link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css"/>
-
-<link rel="icon" href="/logo.jpg"/>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
-<main class="wrap">
-
-<section class="card">
-
-<header class="hero">
-
-<a class="logo-link" id="logoLink" href="#" target="_blank">
-
-<img class="logo" id="logoImg" src="/logo.jpg" alt="Logo"/>
-
-</a>
-
-<div class="titleblock">
-
-<h1 class="brand" id="brand">Loading...</h1>
-
-<p class="tagline" id="tagline"></p>
-
-</div>
-
-</header>
-
-<!-- Links -->
-<nav class="links" id="linksNav">
-
-<a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
-<a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
-<a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
-<a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
-<a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
-  
-<a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
-<a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
-<a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
-
-<a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
-
-</nav>
-
-<!-- About -->
-<section class="section" id="aboutSection">
-
-<h2>About</h2>
-
-<p id="about"></p>
-
-</section>
-
-<!-- Contact -->
-<section class="section" id="contactSection">
-
-<h2>Contact info</h2>
-
-<div class="contact-grid">
-
-<div class="contact-item" id="rowName">
-<div class="label">Name</div>
-<div class="value" id="contactName"></div>
-</div>
-
-<div class="contact-item" id="rowPhone">
-<div class="label">Phone</div>
-<div class="value"><a id="contactPhone"></a></div>
-</div>
-
-<div class="contact-item" id="rowEmail">
-<div class="label">Email</div>
-<div class="value"><a id="contactEmail"></a></div>
-</div>
-
-</div>
-
-<div class="quick-actions" id="quickActions">
-
-<a class="pill" id="pillCall">Call</a>
-
-<a class="pill" id="pillText">Text</a>
-
-<a class="pill" id="pillEmail">Email</a>
-
-</div>
-
-</section>
-
-<footer class="footer">
-
-<span>© <span id="year"></span> <span id="footerBrand"></span></span>
-
-</footer>
-
-</section>
-
-</main>
-
-<script>
-
-const DEFAULT_THEME="/themes/theme-01-neon-dark.css";
-
-const DATA_PATH=(slug)=>`/data/clients/${slug}.json`;
-
-const $=(id)=>document.getElementById(id);
-
-/* ===============================
-URL helpers
-=============================== */
-
-function normalizeUrl(url){
-
-const u=(url||"").trim();
-
-if(!u)return "";
-
-if(u.startsWith("http"))return u;
-
-return "https://"+u;
-
-}
-
-function setLinkOrHide(id,url){
-
-const el=$(id);
-
-const u=normalizeUrl(url);
-
-if(!u){
-
-el.style.display="none";
-
-return false;
-
-}
-
-el.href=u;
-
-el.style.display="";
-
-return true;
-
-}
-
-function setRawOrHide(id,href){
-
-const el=$(id);
-
-if(!href){
-
-el.style.display="none";
-
-return false;
-
-}
-
-el.href=href;
-
-el.style.display="";
-
-return true;
-
-}
-
-function hide(id){
-
-$(id).style.display="none";
-
-}
-
-function show(id){
-
-$(id).style.display="";
-
-}
-
-/* ===============================
-Slug detection
-=============================== */
-
-function getSlug(){
-
-const params=new URLSearchParams(location.search);
-
-if(params.get("client"))
-
-return params.get("client").toLowerCase();
-
-const parts=location.pathname.split("/").filter(Boolean);
-
-return parts[0]||"sample";
-
-}
-
-/* ===============================
-Load client
-=============================== */
-
-async function loadClient(slug){
-
-const res=await fetch(DATA_PATH(slug)+"?v="+Date.now());
-
-if(!res.ok)throw new Error("Client not found");
-
-return await res.json();
-
-}
-
-/* ===============================
-Apply client
-=============================== */
-
-function setLinkOrHide(id, url) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const u = (url || "").trim();
-  if (!u || u === "#") {
-    el.style.display = "none";
-    el.removeAttribute("href");
-  } else {
-    el.style.display = "";
-    el.href = u;
-  }
-}
-
-function applyClient(c){
-
-/* Theme */
-
-const theme=c.theme
-
-? (c.theme.startsWith("/")?c.theme:"/themes/"+c.theme)
-
-:DEFAULT_THEME;
-
-$("themeStylesheet").href=theme+"?v="+Date.now();
-
-/* Title logic */
-
-const business=(c.businessName||"").trim();
-
-const name=(c.contact?.name||"").trim();
-
-const title=business||name||"Contact Card";
-
-document.title=title;
-
-$("brand").textContent=title;
-
-$("footerBrand").textContent=title;
-
-/* Tagline */
-
-if(c.tagline){
-
-$("tagline").textContent=c.tagline;
-
-show("tagline");
-
-}else hide("tagline");
-
-/* About */
-
-if(c.about){
-
-$("about").textContent=c.about;
-
-show("aboutSection");
-
-}else hide("aboutSection");
-
-/* Logo */
-
-$("logoImg").src=c.logoPath||"/logo.jpg";
-
-if(c.links?.website)
-
-$("logoLink").href=normalizeUrl(c.links.website);
-
-else
-
-$("logoLink").removeAttribute("href");
-
-/* Links */
-
-setLinkOrHide("btnWebsite",   c.links?.website);
-setLinkOrHide("btnFacebook",  c.links?.facebook);
-setLinkOrHide("btnInstagram", c.links?.instagram);
-setLinkOrHide("btnTikTok",    c.links?.tiktok);
-
-setLinkOrHide("btnLinkedIn",  c.links?.linkedin);
-setLinkOrHide("btnPayPal",    c.links?.paypal);
-setLinkOrHide("btnCashApp",   c.links?.cashapp);
-setLinkOrHide("btnVenmo",     c.links?.venmo);
-
-setLinkOrHide("btnVcard", c.vcardPath || "");
-
-/* Contact */
-
-if(name){
-
-$("contactName").textContent=name;
-
-show("rowName");
-
-}else hide("rowName");
-
-const phone=c.contact?.phoneE164||"";
-
-if(phone){
-
-$("contactPhone").textContent=c.contact?.phoneDisplay||phone;
-
-$("contactPhone").href="tel:"+phone;
-
-show("rowPhone");
-
-}else hide("rowPhone");
-
-const email=c.contact?.email||"";
-
-if(email){
-
-$("contactEmail").textContent=email;
-
-$("contactEmail").href="mailto:"+email;
-
-show("rowEmail");
-
-}else hide("rowEmail");
-
-/* Pills */
-
-const call=setRawOrHide("pillCall",phone?"tel:"+phone:"");
-
-const text=setRawOrHide("pillText",phone?"sms:"+phone:"");
-
-const mail=setRawOrHide("pillEmail",email?"mailto:"+email:"");
-
-if(!call&&!text&&!mail)
-
-hide("quickActions");
-
-}
-
-/* ===============================
-Init
-=============================== */
-
-async function init(){
-
-$("year").textContent=new Date().getFullYear();
-
-const slug=getSlug();
-
-try{
-
-const client=await loadClient(slug);
-
-applyClient(client);
-
-}catch{
-
-const client=await loadClient("sample");
-
-applyClient(client);
-
-$("brand").textContent="Card not found";
-
-}
-
-}
-
-init();
-
-</script>
-
+  <main class="wrap">
+    <section class="card">
+
+      <header class="hero" id="hero">
+        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
+          <img class="logo" id="logoImg" src="/logo.jpg" alt="Logo" />
+        </a>
+
+        <div class="titleblock">
+          <h1 class="brand" id="brand">Loading…</h1>
+          <p class="tagline" id="tagline"></p>
+        </div>
+      </header>
+
+      <!-- LINKS -->
+      <nav class="links" id="linksWrap" aria-label="Primary links">
+        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+
+        <a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
+        <a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
+        <a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
+
+        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
+      </nav>
+
+      <!-- ABOUT -->
+      <section class="section" id="aboutSection">
+        <h2 id="aboutHeader">About</h2>
+        <p id="about"></p>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="section" id="contactSection">
+        <h2 id="contactHeader">Contact info</h2>
+
+        <div class="contact-grid" id="contactGrid">
+          <div class="contact-item" id="rowName">
+            <div class="label">Name</div>
+            <div class="value" id="contactName"></div>
+          </div>
+
+          <div class="contact-item" id="rowPhone">
+            <div class="label">Phone</div>
+            <div class="value"><a id="contactPhone" href="#"></a></div>
+          </div>
+
+          <div class="contact-item" id="rowEmail">
+            <div class="label">Email</div>
+            <div class="value"><a id="contactEmail" href="#"></a></div>
+          </div>
+        </div>
+
+        <div class="quick-actions" id="quickActions" aria-label="Quick actions">
+          <a class="pill" id="pillCall" href="#">Call</a>
+          <a class="pill" id="pillText" href="#">Text</a>
+          <a class="pill" id="pillEmail" href="#">Email</a>
+        </div>
+      </section>
+
+      <footer class="footer" id="footer">
+        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
+      </footer>
+
+    </section>
+  </main>
+
+  <script>
+    // =========================================================
+    // ✅ EDIT THESE (global settings)
+    // =========================================================
+    const DEFAULT_THEME = "/themes/theme-01-neon-dark.css";
+    const DATA_PATH = (slug) => `/data/clients/${slug}.json`;
+
+    const $ = (id) => document.getElementById(id);
+
+    // =========================================================
+    // Slug: query (?client=test) OR path (/test)
+    // =========================================================
+    function getSlugFromPathOrQuery() {
+      const params = new URLSearchParams(location.search);
+      const qClient = (params.get("client") || "").trim().toLowerCase();
+      if (qClient) return qClient;
+
+      const parts = location.pathname.split("/").filter(Boolean);
+      const first = (parts[0] || "").trim().toLowerCase();
+
+      if (!first) return "sample";
+
+      // If hosted as https://username.github.io/nfc-hub/test
+      // then parts[0] is "nfc-hub" and parts[1] is slug.
+      if (location.hostname.toLowerCase().endsWith(".github.io")) {
+        if (first === "nfc-hub" && parts.length >= 2) return (parts[1] || "sample").toLowerCase();
+      }
+
+      return first;
+    }
+
+    async function loadClient(slug) {
+      const res = await fetch(DATA_PATH(slug), { cache: "no-store" });
+      if (!res.ok) throw new Error(`Client "${slug}" not found (${res.status})`);
+      return res.json();
+    }
+
+    // =========================================================
+    // UI helpers: show/hide
+    // =========================================================
+    function hide(el) { if (el) el.classList.add("is-hidden"); }
+    function show(el) { if (el) el.classList.remove("is-hidden"); }
+
+    function setTextOrHide(el, text) {
+      const t = String(text || "").trim();
+      if (!t) { hide(el); return false; }
+      show(el);
+      el.textContent = t;
+      return true;
+    }
+
+    function setHrefOrHide(anchorEl, href) {
+      const h = String(href || "").trim();
+      if (!h || h === "#") { hide(anchorEl); return false; }
+      show(anchorEl);
+      anchorEl.href = h;
+      return true;
+    }
+
+    // After hiding empty link buttons, make the grid look nice
+    function rebalanceLinkGrid() {
+      const wrap = $("linksWrap");
+      if (!wrap) return;
+
+      // Only count visible children
+      const visible = Array.from(wrap.children).filter(el => !el.classList.contains("is-hidden"));
+
+      // Remove layout classes first
+      wrap.classList.remove("links--grid");
+
+      // If we have 3+ buttons, switch to 2-col grid
+      if (visible.length >= 3) wrap.classList.add("links--grid");
+
+      // Clear any old "last full" markings
+      visible.forEach(el => el.classList.remove("btn--last-full"));
+
+      // If odd count (and grid mode), make the last one span both columns
+      if (wrap.classList.contains("links--grid") && visible.length % 2 === 1) {
+        const last = visible[visible.length - 1];
+        if (last) last.classList.add("btn--last-full");
+      }
+    }
+
+    function applyClient(c) {
+      // Theme (cache-bust so switching themes shows immediately)
+      const themeHref = c.theme
+        ? (c.theme.startsWith("/") ? c.theme : `/themes/${c.theme}`)
+        : DEFAULT_THEME;
+      $("themeStylesheet").href = `${themeHref}?v=${Date.now()}`;
+
+      // Title + footer brand
+      const businessName = (c.businessName || "").trim();
+      const contactName = (c.contact?.name || "").trim();
+      const title = businessName || contactName || "NFC Card";
+
+      document.title = title;
+      $("footerBrand").textContent = title;
+
+      // Brand line: if businessName blank, use contact name; if both blank, hide
+      if (!setTextOrHide($("brand"), businessName || contactName)) {
+        $("brand").textContent = " ";
+      }
+
+      // Tagline + about
+      setTextOrHide($("tagline"), c.tagline);
+      const hasAbout = setTextOrHide($("about"), c.about);
+      if (!hasAbout) hide($("aboutSection")); else show($("aboutSection"));
+
+      // Logo (optional)
+      const logoPath = (c.logoPath || "").trim() || "/logo.jpg";
+      $("logoImg").src = logoPath;
+      $("logoImg").alt = `${title} logo`;
+
+      // Website used as logo link if present
+      const website = (c.links?.website || "").trim();
+      if (website) {
+        $("logoLink").href = website;
+        show($("logoLink"));
+      } else {
+        $("logoLink").href = "#";
+      }
+
+      // Links (auto-hide if blank)
+      setHrefOrHide($("btnWebsite"), c.links?.website);
+      setHrefOrHide($("btnFacebook"), c.links?.facebook);
+      setHrefOrHide($("btnInstagram"), c.links?.instagram);
+      setHrefOrHide($("btnTikTok"), c.links?.tiktok);
+
+      setHrefOrHide($("btnLinkedIn"), c.links?.linkedin);
+      setHrefOrHide($("btnPayPal"), c.links?.paypal);
+      setHrefOrHide($("btnCashApp"), c.links?.cashapp);
+      setHrefOrHide($("btnVenmo"), c.links?.venmo);
+
+      // vCard (hide if missing)
+      const vcardPath = (c.vcardPath || "").trim();
+      if (vcardPath) {
+        $("btnVcard").href = vcardPath;
+        show($("btnVcard"));
+      } else {
+        hide($("btnVcard"));
+      }
+
+      // Contact info rows (auto-hide)
+      const nameOk = setTextOrHide($("contactName"), c.contact?.name);
+      if (!nameOk) hide($("rowName")); else show($("rowName"));
+
+      const phoneE164 = (c.contact?.phoneE164 || "").trim();
+      const phoneDisplay = (c.contact?.phoneDisplay || "").trim() || phoneE164;
+
+      if (phoneE164 || phoneDisplay) {
+        show($("rowPhone"));
+        $("contactPhone").textContent = phoneDisplay || "";
+        $("contactPhone").href = phoneE164 ? `tel:${phoneE164}` : "#";
+      } else {
+        hide($("rowPhone"));
+      }
+
+      const email = (c.contact?.email || "").trim();
+      if (email) {
+        show($("rowEmail"));
+        $("contactEmail").textContent = email;
+        $("contactEmail").href = `mailto:${email}`;
+      } else {
+        hide($("rowEmail"));
+      }
+
+      // Quick actions (auto-hide each pill)
+      if (phoneE164) {
+        $("pillCall").href = `tel:${phoneE164}`; show($("pillCall"));
+        $("pillText").href = `sms:${phoneE164}`; show($("pillText"));
+      } else {
+        hide($("pillCall"));
+        hide($("pillText"));
+      }
+
+      if (email) {
+        $("pillEmail").href = `mailto:${email}`; show($("pillEmail"));
+      } else {
+        hide($("pillEmail"));
+      }
+
+      // If no quick actions left, hide the whole row
+      const anyPill = [ $("pillCall"), $("pillText"), $("pillEmail") ]
+        .some(el => el && !el.classList.contains("is-hidden"));
+      if (!anyPill) hide($("quickActions")); else show($("quickActions"));
+
+      // If all contact rows hidden, hide Contact section
+      const anyContactRow = [ $("rowName"), $("rowPhone"), $("rowEmail") ]
+        .some(el => el && !el.classList.contains("is-hidden"));
+      if (!anyContactRow) hide($("contactSection")); else show($("contactSection"));
+
+      // Final: make link grid pretty after hiding blanks
+      rebalanceLinkGrid();
+    }
+
+    async function main() {
+      $("year").textContent = new Date().getFullYear();
+
+      // =========================================================
+      // ✅ SPA RESTORE BLOCK (works with your 404.html)
+      // =========================================================
+      const redirectPath = sessionStorage.redirectPath;
+      if (redirectPath) {
+        sessionStorage.removeItem("redirectPath");
+        history.replaceState(null, "", redirectPath);
+      }
+
+      const slug = getSlugFromPathOrQuery();
+
+      try {
+        const client = await loadClient(slug);
+        applyClient(client);
+      } catch (err) {
+        console.error(err);
+        try {
+          const client = await loadClient("sample");
+          applyClient(client);
+          $("brand").textContent = "Client not found";
+          $("tagline").textContent = `No card configured for "${slug}". Showing sample.`;
+          show($("tagline"));
+        } catch (e2) {
+          $("brand").textContent = "Client not found";
+          $("tagline").textContent = "No sample client available.";
+          show($("tagline"));
+          hide($("linksWrap"));
+          hide($("aboutSection"));
+          hide($("contactSection"));
+        }
+      }
+    }
+
+    main();
+  </script>
 </body>
 </html>
