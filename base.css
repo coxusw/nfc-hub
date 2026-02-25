@@ -93,20 +93,43 @@ body{
 .links{
   padding:10px 18px 0;
   display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:10px;
+}
+
+/* On narrow phones, fall back to 1 column */
+@media (max-width: 420px){
+  .links{ grid-template-columns: 1fr; }
 }
 
 .btn{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:12px 14px;
+  padding:10px 12px;     /* smaller */
   border-radius:14px;
   text-decoration:none;
   font-weight:700;
+  font-size:14px;        /* smaller */
   color:var(--btn-text);
   background:var(--btn-bg);
   border:1px solid var(--btn-border);
+}
+
+/* If odd number of visible buttons, center the last one nicely */
+.links .btn:last-child:nth-child(odd){
+  grid-column: 1 / -1;
+  justify-self:center;
+  width: 100%;
+  max-width: 340px;
+}
+
+/* Optional: make vCard always the “nice big” bottom button */
+.btn.vcard{
+  grid-column: 1 / -1;
+  justify-self:center;
+  width: 100%;
+  max-width: 360px;
 }
 
 /* Sections */
