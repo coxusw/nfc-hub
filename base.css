@@ -1,8 +1,9 @@
 /* =========================================================
    NFC HUB Base Styles (always loaded)
    - Centers everything
-   - Makes logo a consistent size + centered
-   - Themes can override colors via variables if you want
+   - Consistent logo size + centered
+   - Link buttons support 1-col or 2-col grid automatically
+   - JS can hide elements with .is-hidden
 ========================================================= */
 
 :root{
@@ -23,6 +24,8 @@
 }
 
 *{ box-sizing:border-box; }
+
+.is-hidden{ display:none !important; }
 
 body{
   margin:0;
@@ -54,6 +57,7 @@ body{
   overflow:hidden;
 }
 
+/* Header */
 .hero{
   padding:18px 18px 10px;
   text-align:center;
@@ -89,47 +93,40 @@ body{
   color:var(--muted);
 }
 
-/* Buttons */
+/* ---------------------------------------------------------
+   LINKS
+   Default: 1 column
+   JS adds .links--grid for 2 columns if 3+ visible buttons
+--------------------------------------------------------- */
 .links{
   padding:10px 18px 0;
   display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap:10px;
 }
 
-/* On narrow phones, fall back to 1 column */
-@media (max-width: 420px){
-  .links{ grid-template-columns: 1fr; }
+.links.links--grid{
+  grid-template-columns: 1fr 1fr;
 }
 
 .btn{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:10px 12px;     /* smaller */
+  padding:11px 12px;              /* slightly smaller than before */
   border-radius:14px;
   text-decoration:none;
   font-weight:700;
-  font-size:14px;        /* smaller */
   color:var(--btn-text);
   background:var(--btn-bg);
   border:1px solid var(--btn-border);
 }
 
-/* If odd number of visible buttons, center the last one nicely */
-.links .btn:last-child:nth-child(odd){
+/* If odd number of buttons in grid mode, last one spans full width */
+.links.links--grid .btn--last-full{
   grid-column: 1 / -1;
-  justify-self:center;
+  justify-self: center;
   width: 100%;
-  max-width: 340px;
-}
-
-/* Optional: make vCard always the “nice big” bottom button */
-.btn.vcard{
-  grid-column: 1 / -1;
-  justify-self:center;
-  width: 100%;
-  max-width: 360px;
 }
 
 /* Sections */
