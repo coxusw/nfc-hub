@@ -1,0 +1,25 @@
+{
+  "slug": "testing",
+  "businessName": "Testing",
+  "tagline": "Testing",
+  "about": "Testing",
+  "links": {
+    "website": "https://Testing",
+    "facebook": "https://Testing",
+    "instagram": "https://Testing",
+    "tiktok": "https://Testing",
+    "linkedin": "",
+    "paypal": "https://Testing",
+    "cashapp": "https://Testing",
+    "venmo": "https://Testing"
+  },
+  "contact": {
+    "name": "Testing",
+    "phoneE164": "",
+    "phoneDisplay": "123456789",
+    "email": "chrisuswcox@gmail.com"
+  },
+  "theme": "animated-aurora-drift.css",
+  "logoPath": "/logos/testing.jpg",
+  "vcardPath": "/vcards/testing.vcf"
+}
