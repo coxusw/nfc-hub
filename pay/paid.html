@@ -1,1 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Redirecting…</title>
+</head>
+<body style="font-family:system-ui; padding:18px;">
+  <h2>Thanks! Redirecting to the intake form…</h2>
+<script>
+  // ✅ EDIT THESE
+  const GOOGLE_FORM_PREFILL_URL = "PASTE_YOUR_GOOGLE_FORM_PREFILL_LINK_HERE";
+  const THEME_QUERY_KEY = "entry.2114451287";
+  const SLUG_QUERY_KEY  = "entry.YOUR_SLUG_KEY_HERE";
 
+  const theme = localStorage.getItem("nfc_theme") || "";
+  const slug  = localStorage.getItem("nfc_slug")  || "";
+
+  const u = new URL(GOOGLE_FORM_PREFILL_URL);
+  if (theme) u.searchParams.set(THEME_QUERY_KEY, theme);
+  if (slug)  u.searchParams.set(SLUG_QUERY_KEY, slug);
+
+  location.replace(u.toString());
+</script>
+</body>
+</html>
