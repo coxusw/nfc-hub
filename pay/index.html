@@ -1,19 +1,25 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Hub — Paywall Entry
+  NFC Hub — Paywall
   File: /pay/index.html
 
-  What it does:
-  - Receives ?theme=...&slug=... from "Use this theme"
-  - If they have a bypass code, sends them straight to the Google Form
-  - Otherwise, sends them to Square payment with a return URL to /pay/paid.html
+  WHAT THIS PAGE DOES
+  - Reads ?theme=...&slug=...
+  - Shows "Pay with Square" button
+  - Optional: allows a ONE-TIME bypass token (validated server-side via Apps Script Web App)
+  - After valid token, redirects to Google Form with theme+slug prefilled
+
+  ✅ EDIT THESE AT THE TOP:
+  1) SQUARE_PAYMENT_LINK
+  2) GOOGLE_FORM_URL
+  3) THEME_QUERY_KEY, SLUG_QUERY_KEY
+  4) TOKEN_WEBAPP_URL  (Apps Script Web App URL)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Activate Your NFC Profile</title>
-  <meta name="description" content="Complete payment to activate your NFC profile, or enter a code." />
+  <title>Activate your NFC Profile</title>
   <style>
     :root{
       --bg1:#050816; --bg2:#0b1020;
@@ -22,6 +28,8 @@
       --text:#eef2ff; --muted:#b6c2ff;
       --btn:rgba(255,255,255,.10);
       --btnb:rgba(255,255,255,.16);
+      --good:rgba(34,197,94,.18);
+      --bad:rgba(239,68,68,.18);
     }
     *{box-sizing:border-box}
     body{
@@ -33,104 +41,139 @@
         radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
         linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
       display:flex; align-items:center; justify-content:center;
-      padding:24px 16px;
+      padding:24px 14px;
     }
+    .wrap{width:min(680px,100%)}
     .card{
-      width:min(560px,100%);
       background:var(--card);
       border:1px solid var(--border);
       border-radius:18px;
       padding:18px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
-    h1{margin:0 0 8px 0; font-size:22px}
-    .sub{margin:0 0 14px 0; color:var(--muted); line-height:1.5}
+    h1{margin:0 0 10px 0; font-size:22px}
+    .sub{margin:0 0 14px 0; color:var(--muted); line-height:1.45}
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .btn{
+    .pill{
       display:inline-flex; align-items:center; justify-content:center;
-      padding:12px 14px; border-radius:12px;
+      padding:9px 12px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-weight:700;
+      text-decoration:none;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn{
+      width:100%;
+      display:flex; justify-content:center; align-items:center;
+      padding:12px 14px;
+      border-radius:14px;
       border:1px solid var(--btnb);
       background:var(--btn);
       color:var(--text);
+      font-weight:900;
       text-decoration:none;
-      font-weight:800;
       cursor:pointer;
-      flex:1;
-      min-width:220px;
     }
     .btn.primary{
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
-      border-color:rgba(34,197,94,.28);
+      border-color:rgba(34,197,94,.30);
     }
-    label{display:block; font-weight:700; margin:14px 0 6px}
     input{
       width:100%;
-      background:rgba(0,0,0,.22);
-      border:1px solid var(--border);
-      color:var(--text);
-      padding:10px 12px;
+      padding:12px 12px;
       border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
       outline:none;
     }
-    .small{font-size:12px; color:var(--muted); margin-top:8px}
-    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    .box{
+      margin-top:14px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+    }
     .notice{
-      display:none;
-      margin:12px 0 0;
+      margin-top:12px;
       padding:10px 12px;
       border-radius:12px;
-      border:1px solid rgba(239,68,68,.25);
-      background:rgba(239,68,68,.10);
-      color:#ffd1d1;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--muted);
+      display:none;
+      line-height:1.35;
+      white-space:pre-wrap;
     }
+    .notice.ok{ display:block; background:var(--good); color:var(--text); }
+    .notice.bad{ display:block; background:var(--bad); color:var(--text); }
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    .small{font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Activate your NFC profile</h1>
-    <p class="sub">
-      You’re one step away. Complete payment to continue, or enter a free access code if you were given one.
-    </p>
+  <main class="wrap">
+    <section class="card">
+      <h1>Activate your profile</h1>
+      <p class="sub">
+        Choose a theme → pay → fill out your info → your link goes live.
+      </p>
 
-    <div class="row" style="margin:10px 0 4px;">
-      <a class="btn primary" id="btnPay" href="#">Continue to payment</a>
-      <button class="btn" id="btnSkip" type="button">I already paid</button>
-    </div>
+      <div class="box">
+        <div class="row" style="justify-content:space-between;">
+          <div class="small">Selected theme:</div>
+          <span class="pill" id="themePill">—</span>
+        </div>
+        <div class="row" style="justify-content:space-between; margin-top:8px;">
+          <div class="small">Desired slug:</div>
+          <span class="pill" id="slugPill">—</span>
+        </div>
+      </div>
 
-    <label for="code">Have a free access code?</label>
-    <input id="code" placeholder="Enter code (optional)" autocomplete="off" />
-    <div class="row" style="margin-top:10px;">
-      <button class="btn" id="btnUseCode" type="button">Use code & continue</button>
-    </div>
+      <div style="margin-top:14px;">
+        <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">
+          Pay with Square
+        </a>
+        <div class="small" style="margin-top:8px;">
+          After payment, come back and you’ll be guided to the intake form.
+        </div>
+      </div>
 
-    <div class="small">
-      Theme: <code id="dbgTheme"></code> &nbsp; • &nbsp; Slug: <code id="dbgSlug"></code>
-    </div>
+      <div class="box">
+        <div style="font-weight:900; margin-bottom:8px;">Have a one-time bypass token?</div>
+        <div class="small" style="margin-bottom:10px;">
+          Tokens are single-use and validated securely (not stored in this page).
+        </div>
 
-    <div class="notice" id="notice"></div>
+        <input id="token" placeholder="Enter token (example: CCX-9F3K-2Q7M)" />
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="tokenBtn" type="button">Use token and continue</button>
+        </div>
+
+        <div class="notice" id="notice"></div>
+      </div>
+
+      <div class="small" style="margin-top:14px;">
+        By continuing you agree to submit accurate info. Slug must be unique.
+      </div>
+    </section>
   </main>
 
 <script>
 /* =========================================================
-   ✅ EDIT HERE (already filled with your values)
+   ✅ EDIT THESE
 ========================================================= */
-const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
+const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";  // your link
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_ck72SA/viewform?usp=pp_url";
 
-const GOOGLE_FORM_PREFILL_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_ck72SA/viewform?usp=pp_url";
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
 
-/* Free code support (OPTIONAL)
-   - Put your real codes here.
-   - Codes are checked client-side only, so don’t use “high security” codes.
-   - Good enough for simple promo/comp situations.
-*/
-const FREE_CODES = [
-  "FREE100",
-  "CRESTEDVIP",
-  "WELCOME"
-];
-
+// Apps Script Web App URL (you’ll set this after deploying the script)
+const TOKEN_WEBAPP_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 /* ========================================================= */
 
 const $ = (id)=>document.getElementById(id);
@@ -139,65 +182,59 @@ function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function normalizeTheme(t){
-  return (t||"").trim().replace(/^\/?themes\//i,"").replace(/^\/+/,"");
+function showNotice(msg, kind){
+  const n = $("notice");
+  n.className = "notice " + (kind || "");
+  n.textContent = msg || "";
+  n.style.display = msg ? "" : "none";
 }
 
-function normalizeSlug(s){
-  return (s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
-}
-
-function formUrl(theme, slug){
-  const u = new URL(GOOGLE_FORM_PREFILL_URL);
+function buildFormUrl(theme, slug){
+  const u = new URL(GOOGLE_FORM_URL);
   if (theme) u.searchParams.set(THEME_QUERY_KEY, theme);
   if (slug)  u.searchParams.set(SLUG_QUERY_KEY, slug);
   return u.toString();
 }
 
-function paidUrl(theme, slug){
-  const u = new URL(location.origin + "/pay/paid.html");
-  if (theme) u.searchParams.set("theme", theme);
-  if (slug)  u.searchParams.set("slug", slug);
-  return u.toString();
-}
-
-function showNotice(msg){
-  const n = $("notice");
-  n.textContent = msg;
-  n.style.display = msg ? "" : "none";
-}
-
 function main(){
-  const theme = normalizeTheme(getParam("theme"));
-  const slug  = normalizeSlug(getParam("slug"));
+  const theme = (getParam("theme") || "").trim();
+  const slug  = (getParam("slug") || "").trim().toLowerCase();
 
-  $("dbgTheme").textContent = theme || "(none)";
-  $("dbgSlug").textContent  = slug  || "(none)";
+  $("themePill").textContent = theme || "Not set";
+  $("slugPill").textContent  = slug  || "Not set";
 
-  // If you want to REQUIRE slug, uncomment:
-  // if(!slug){ showNotice("Missing slug. Go back and choose a theme again."); }
+  // Payment link: we just open Square. (Payment verification will be a later upgrade.)
+  $("payBtn").href = SQUARE_PAYMENT_LINK;
 
-  // Pay button: go to Square with return to our paid.html
-  $("btnPay").href = SQUARE_PAYMENT_LINK + "?redirect_url=" + encodeURIComponent(paidUrl(theme, slug));
+  $("tokenBtn").addEventListener("click", async ()=>{
+    const token = ($("token").value || "").trim();
+    if (!token) return showNotice("Enter a token first.", "bad");
 
-  // "I already paid" -> go to paid.html
-  $("btnSkip").addEventListener("click", ()=>{
-    location.href = paidUrl(theme, slug);
-  });
-
-  // Code bypass
-  $("btnUseCode").addEventListener("click", ()=>{
-    const code = ($("code").value || "").trim().toUpperCase();
-    if(!code){
-      showNotice("Enter a code, or continue to payment.");
-      return;
+    if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
+      return showNotice("Token service not configured. (TOKEN_WEBAPP_URL not set yet)", "bad");
     }
-    if(!FREE_CODES.includes(code)){
-      showNotice("Code not recognized. Please try again or continue to payment.");
-      return;
+
+    showNotice("Validating token…", "");
+
+    try{
+      const u = new URL(TOKEN_WEBAPP_URL);
+      u.searchParams.set("action", "redeem");
+      u.searchParams.set("token", token);
+      u.searchParams.set("theme", theme);
+      u.searchParams.set("slug", slug);
+
+      const res = await fetch(u.toString(), { cache:"no-store" });
+      const data = await res.json();
+
+      if (!data.ok) throw new Error(data.error || "Token rejected");
+
+      // Server returns a ready-to-go form URL (with keys)
+      showNotice("Token accepted! Sending you to the intake form…", "ok");
+      setTimeout(()=>{ location.href = data.formUrl; }, 650);
+
+    }catch(err){
+      showNotice("Token failed: " + (err.message || String(err)), "bad");
     }
-    // Bypass -> go straight to form
-    location.href = formUrl(theme, slug);
   });
 }
 
