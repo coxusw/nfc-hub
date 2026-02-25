@@ -244,6 +244,19 @@ return await res.json();
 Apply client
 =============================== */
 
+function setLinkOrHide(id, url) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const u = (url || "").trim();
+  if (!u || u === "#") {
+    el.style.display = "none";
+    el.removeAttribute("href");
+  } else {
+    el.style.display = "";
+    el.href = u;
+  }
+}
+
 function applyClient(c){
 
 /* Theme */
