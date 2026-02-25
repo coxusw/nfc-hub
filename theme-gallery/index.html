@@ -147,7 +147,6 @@
 
   <main class="wrap">
     <div class="controls">
-      <input id="search" placeholder="Search themes (e.g. luxury, medical, animated)" />
       <select id="category">
         <option value="all">All</option>
         <option value="luxury">Luxury</option>
@@ -245,7 +244,6 @@ async function fetchThemes(){
 }
 
 function render(files){
-  const q = $("search").value.trim().toLowerCase();
   const cat = $("category").value;
 
   const filtered = files.filter(f=>{
@@ -329,7 +327,6 @@ async function main(){
   }
 }
 
-$("search").addEventListener("input", ()=>render(ALL));
 $("category").addEventListener("change", ()=>render(ALL));
 $("btnReload").addEventListener("click", main);
 
