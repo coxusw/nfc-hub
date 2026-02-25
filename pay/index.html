@@ -1,139 +1,207 @@
 <!doctype html>
+<!-- =========================================================
+  NFC Hub — Paywall Entry
+  File: /pay/index.html
+
+  What it does:
+  - Receives ?theme=...&slug=... from "Use this theme"
+  - If they have a bypass code, sends them straight to the Google Form
+  - Otherwise, sends them to Square payment with a return URL to /pay/paid.html
+========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Activate Your NFC Profile</title>
+  <meta name="description" content="Complete payment to activate your NFC profile, or enter a code." />
   <style>
-    :root{ --bg:#050816; --fg:#eef2ff; --mut:#b6c2ff; --card:rgba(255,255,255,.06); --bd:rgba(255,255,255,.12); }
+    :root{
+      --bg1:#050816; --bg2:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:#eef2ff; --muted:#b6c2ff;
+      --btn:rgba(255,255,255,.10);
+      --btnb:rgba(255,255,255,.16);
+    }
     *{box-sizing:border-box}
-    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:linear-gradient(180deg,#050816,#0b1020,#050816); color:var(--fg); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;}
-    .card{width:min(560px,100%); background:var(--card); border:1px solid var(--bd); border-radius:18px; padding:16px;}
-    h1{margin:0 0 6px 0; font-size:22px;}
-    p{margin:8px 0; color:var(--mut); line-height:1.45;}
-    label{display:block; margin:12px 0 6px; color:var(--mut); font-size:13px;}
-    input{width:100%; padding:12px; border-radius:12px; border:1px solid var(--bd); background:rgba(0,0,0,.25); color:var(--fg);}
-    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
-    .btn{flex:1; min-width:170px; text-align:center; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.10); color:var(--fg); text-decoration:none; font-weight:800; cursor:pointer;}
-    .btn.primary{background:linear-gradient(90deg, rgba(34,197,94,.25), rgba(6,182,212,.18)); border-color:rgba(34,197,94,.30);}
-    .small{font-size:12px; color:var(--mut); margin-top:10px;}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px}
-    .ok{color:#86efac}
-    .bad{color:#fca5a5}
+    body{
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(6,182,212,.18) 0%, transparent 45%),
+        radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
+        linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
+      display:flex; align-items:center; justify-content:center;
+      padding:24px 16px;
+    }
+    .card{
+      width:min(560px,100%);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 18px 60px rgba(0,0,0,.25);
+    }
+    h1{margin:0 0 8px 0; font-size:22px}
+    .sub{margin:0 0 14px 0; color:var(--muted); line-height:1.5}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:12px 14px; border-radius:12px;
+      border:1px solid var(--btnb);
+      background:var(--btn);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:800;
+      cursor:pointer;
+      flex:1;
+      min-width:220px;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
+      border-color:rgba(34,197,94,.28);
+    }
+    label{display:block; font-weight:700; margin:14px 0 6px}
+    input{
+      width:100%;
+      background:rgba(0,0,0,.22);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      outline:none;
+    }
+    .small{font-size:12px; color:var(--muted); margin-top:8px}
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    .notice{
+      display:none;
+      margin:12px 0 0;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(239,68,68,.25);
+      background:rgba(239,68,68,.10);
+      color:#ffd1d1;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+  <main class="card">
     <h1>Activate your NFC profile</h1>
-    <p>Theme selected: <code id="themeName">(loading)</code></p>
+    <p class="sub">
+      You’re one step away. Complete payment to continue, or enter a free access code if you were given one.
+    </p>
 
-    <label>Preferred slug (your link will be /slug)</label>
-    <input id="slug" placeholder="e.g. samantha or sam-custom" />
-    <div class="small" id="slugStatus"></div>
+    <div class="row" style="margin:10px 0 4px;">
+      <a class="btn primary" id="btnPay" href="#">Continue to payment</a>
+      <button class="btn" id="btnSkip" type="button">I already paid</button>
+    </div>
 
-    <label>Secret code (optional — skips payment)</label>
-    <input id="code" placeholder="Enter code if you have one" />
-
-    <div class="row">
-      <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">Pay Now</a>
-      <button class="btn" id="continueBtn" disabled>Continue to Form</button>
+    <label for="code">Have a free access code?</label>
+    <input id="code" placeholder="Enter code (optional)" autocomplete="off" />
+    <div class="row" style="margin-top:10px;">
+      <button class="btn" id="btnUseCode" type="button">Use code & continue</button>
     </div>
 
     <div class="small">
-      If you skip payment with a code, you’ll go straight to the form.
-      If you pay, you must return here and click “Continue to Form” (or we can tighten this flow later).
+      Theme: <code id="dbgTheme"></code> &nbsp; • &nbsp; Slug: <code id="dbgSlug"></code>
     </div>
-  </div>
+
+    <div class="notice" id="notice"></div>
+  </main>
 
 <script>
-  // ✅ EDIT THESE
-  const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
-  const GOOGLE_FORM_PREFILL_URL = "PASTE_YOUR_GOOGLE_FORM_PREFILL_LINK_HERE";
+/* =========================================================
+   ✅ EDIT HERE (already filled with your values)
+========================================================= */
+const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
 
-  // You get these from your Google Form prefill URL:
-  // - theme field key looks like: entry.2114451287
-  // - slug field key looks like: entry.123456789
-  const THEME_QUERY_KEY = "entry.2114451287";
-  const SLUG_QUERY_KEY  = "entry.1052989883";
+const GOOGLE_FORM_PREFILL_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_ck72SA/viewform?usp=pp_url";
+const THEME_QUERY_KEY = "entry.2114451287";
+const SLUG_QUERY_KEY  = "entry.1052989883";
 
-  // Simple bypass codes (visible in source; best-effort only)
-  const SECRET_CODES = ["FREE100", "VIP2026"];
+/* Free code support (OPTIONAL)
+   - Put your real codes here.
+   - Codes are checked client-side only, so don’t use “high security” codes.
+   - Good enough for simple promo/comp situations.
+*/
+const FREE_CODES = [
+  "FREE100",
+  "CRESTEDVIP",
+  "WELCOME"
+];
 
-  const params = new URLSearchParams(location.search);
-  const theme = (params.get("theme") || "").trim();
+/* ========================================================= */
 
-  const themeNameEl = document.getElementById("themeName");
-  const slugEl = document.getElementById("slug");
-  const codeEl = document.getElementById("code");
-  const slugStatus = document.getElementById("slugStatus");
-  const payBtn = document.getElementById("payBtn");
-  const continueBtn = document.getElementById("continueBtn");
+const $ = (id)=>document.getElementById(id);
 
-  themeNameEl.textContent = theme || "(none)";
-  payBtn.href = SQUARE_PAYMENT_LINK;
+function getParam(name){
+  return new URLSearchParams(location.search).get(name) || "";
+}
 
-  function makeSlug(s){
-    return String(s||"").trim().toLowerCase()
-      .replace(/[^a-z0-9-]/g,"-")
-      .replace(/-+/g,"-")
-      .replace(/^-|-$/g,"");
-  }
+function normalizeTheme(t){
+  return (t||"").trim().replace(/^\/?themes\//i,"").replace(/^\/+/,"");
+}
 
-  async function slugAvailable(slug){
-    const url = `/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
-    const res = await fetch(url, { method:"GET", cache:"no-store" });
-    return res.status === 404; // 404 means available
-  }
+function normalizeSlug(s){
+  return (s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
+}
 
-  async function updateSlugStatus(){
-    const slug = makeSlug(slugEl.value);
-    if(!slug){
-      slugStatus.textContent = "Enter a slug to continue.";
-      slugStatus.className = "small";
-      continueBtn.disabled = true;
-      return;
-    }
-    slugStatus.textContent = "Checking slug…";
-    slugStatus.className = "small";
-    const ok = await slugAvailable(slug);
-    if(ok){
-      slugStatus.innerHTML = `<span class="ok">✅ "${slug}" is available.</span>`;
-      continueBtn.disabled = false;
-    }else{
-      slugStatus.innerHTML = `<span class="bad">❌ "${slug}" is already taken. Try another.</span>`;
-      continueBtn.disabled = true;
-    }
-  }
+function formUrl(theme, slug){
+  const u = new URL(GOOGLE_FORM_PREFILL_URL);
+  if (theme) u.searchParams.set(THEME_QUERY_KEY, theme);
+  if (slug)  u.searchParams.set(SLUG_QUERY_KEY, slug);
+  return u.toString();
+}
 
-  slugEl.addEventListener("input", ()=>{ updateSlugStatus(); });
+function paidUrl(theme, slug){
+  const u = new URL(location.origin + "/pay/paid.html");
+  if (theme) u.searchParams.set("theme", theme);
+  if (slug)  u.searchParams.set("slug", slug);
+  return u.toString();
+}
 
-  continueBtn.addEventListener("click", ()=>{
-    const slug = makeSlug(slugEl.value);
-    if(!slug) return;
+function showNotice(msg){
+  const n = $("notice");
+  n.textContent = msg;
+  n.style.display = msg ? "" : "none";
+}
 
-    const code = (codeEl.value||"").trim().toUpperCase();
-    const bypass = SECRET_CODES.includes(code);
+function main(){
+  const theme = normalizeTheme(getParam("theme"));
+  const slug  = normalizeSlug(getParam("slug"));
 
-    // Store chosen values so paid.html can forward later if needed
-    localStorage.setItem("nfc_theme", theme);
-    localStorage.setItem("nfc_slug", slug);
-    localStorage.setItem("nfc_bypass", bypass ? "1" : "0");
+  $("dbgTheme").textContent = theme || "(none)";
+  $("dbgSlug").textContent  = slug  || "(none)";
 
-    const u = new URL(GOOGLE_FORM_PREFILL_URL);
-    if(theme) u.searchParams.set(THEME_QUERY_KEY, theme);
-    u.searchParams.set(SLUG_QUERY_KEY, slug);
+  // If you want to REQUIRE slug, uncomment:
+  // if(!slug){ showNotice("Missing slug. Go back and choose a theme again."); }
 
-    if(bypass){
-      location.href = u.toString();
-      return;
-    }
+  // Pay button: go to Square with return to our paid.html
+  $("btnPay").href = SQUARE_PAYMENT_LINK + "?redirect_url=" + encodeURIComponent(paidUrl(theme, slug));
 
-    // Paid flow: for now they pay in new tab, then click Continue to Form.
-    // (Later we can verify payment/ref automatically.)
-    location.href = u.toString();
+  // "I already paid" -> go to paid.html
+  $("btnSkip").addEventListener("click", ()=>{
+    location.href = paidUrl(theme, slug);
   });
 
-  updateSlugStatus();
+  // Code bypass
+  $("btnUseCode").addEventListener("click", ()=>{
+    const code = ($("code").value || "").trim().toUpperCase();
+    if(!code){
+      showNotice("Enter a code, or continue to payment.");
+      return;
+    }
+    if(!FREE_CODES.includes(code)){
+      showNotice("Code not recognized. Please try again or continue to payment.");
+      return;
+    }
+    // Bypass -> go straight to form
+    location.href = formUrl(theme, slug);
+  });
+}
+
+main();
 </script>
 </body>
 </html>
