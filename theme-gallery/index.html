@@ -225,9 +225,8 @@ function previewUrl(file){
 }
 
 function formUrl(themeFile){
-  if(!GOOGLE_FORM_PREFILL_URL || GOOGLE_FORM_PREFILL_URL.trim() === "") return "";
-  const u = new URL(GOOGLE_FORM_PREFILL_URL);
-  u.searchParams.set(THEME_QUERY_KEY, themeFile);
+  const u = new URL(`https://${BRAND_HOST}/pay/`);
+  u.searchParams.set("theme", themeFile);
   return u.toString();
 }
 
