@@ -438,6 +438,14 @@ async function main(){
     render(ALL);
   }catch(err){
     $("status").textContent = err.message || String(err);
+    const slugInput = $("slugInput");
+const slugPreview = $("slugPreview");
+
+slugInput.addEventListener("input", ()=>{
+  const slug = slugify(slugInput.value);
+  slugPreview.textContent =
+    `https://${BRAND_HOST}/${slug || "your-slug"}`;
+});
   }
 }
 
