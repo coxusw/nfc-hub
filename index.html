@@ -3,12 +3,16 @@
   NFC HUB (Path/Query-based) — Single GitHub Pages site
   =========================================================
 
-  Uses URLs like:
-    https://card.crestedcritters.com/?client=test
-    https://card.crestedcritters.com/test   (if SPA restore is set)
+  Works on:
+    https://coxusw.github.io/tap-deck-site/?client=test
+    https://coxusw.github.io/tap-deck-site/test  (if SPA restore is set)
+
+  And later on:
+    https://tap-deck.com/?client=test
+    https://tap-deck.com/test
 
   Loads:
-    /data/clients/{slug}.json
+    ./data/clients/{slug}.json   (relative path so it works everywhere)
 ========================================================= -->
 <html lang="en">
 <head>
@@ -17,14 +21,20 @@
   <title>NFC Card</title>
   <meta name="description" content="Tap to view contact info and links." />
 
-  <!-- Base layout + theme -->
-  <link rel="stylesheet" href="/base.css" />
-  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css" />
-  <link rel="icon" href="/logo.jpg" />
+  <!-- Base layout + theme (RELATIVE paths for GitHub Pages project sites) -->
+  <link rel="stylesheet" href="./base.css" />
+  <link id="themeStylesheet" rel="stylesheet" href="./themes/theme-01-neon-dark.css" />
+  <link rel="icon" href="./logo.jpg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Small page-level tweak: center About section -->
+  <style>
+    #aboutSection { text-align: center; }
+    #about { margin-left: auto; margin-right: auto; max-width: 70ch; }
+  </style>
 </head>
 
 <body>
@@ -33,7 +43,7 @@
 
       <header class="hero" id="hero">
         <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
-          <img class="logo" id="logoImg" src="/logo.jpg" alt="Logo" />
+          <img class="logo" id="logoImg" src="./logo.jpg" alt="Logo" />
         </a>
 
         <div class="titleblock">
@@ -100,33 +110,52 @@
 
   <script>
     // =========================================================
+    // ✅ Environment-aware base path (GitHub project site vs real domain root)
+    // =========================================================
+    function getBasePath() {
+      // On GitHub Pages project site: /tap-deck-site/...
+      // On production domain: /...
+      const parts = window.location.pathname.split('/').filter(Boolean);
+
+      if (window.location.hostname.toLowerCase().endsWith('.github.io')) {
+        // first segment is repo name
+        return parts.length ? `/${parts[0]}/` : '/';
+      }
+      return '/';
+    }
+
+    const BASE = getBasePath();
+
+    // =========================================================
     // ✅ EDIT THESE (global settings)
     // =========================================================
-    const DEFAULT_THEME = "/themes/theme-01-neon-dark.css";
-    const DATA_PATH = (slug) => `/data/clients/${slug}.json`;
+    const DEFAULT_THEME = `${BASE}themes/theme-01-neon-dark.css`;
+    const DATA_PATH = (slug) => `${BASE}data/clients/${slug}.json`;
 
     const $ = (id) => document.getElementById(id);
 
     // =========================================================
     // Slug: query (?client=test) OR path (/test)
+    // GitHub project site: /tap-deck-site/test
+    // Production: /test
     // =========================================================
     function getSlugFromPathOrQuery() {
       const params = new URLSearchParams(location.search);
       const qClient = (params.get("client") || "").trim().toLowerCase();
       if (qClient) return qClient;
 
-      const parts = location.pathname.split("/").filter(Boolean);
-      const first = (parts[0] || "").trim().toLowerCase();
+      const parts = location.pathname.split("/").filter(Boolean).map(s => s.toLowerCase());
 
-      if (!first) return "sample";
+      // No slug at all -> default sample
+      if (parts.length === 0) return "sample";
 
-      // If hosted as https://username.github.io/nfc-hub/test
-      // then parts[0] is "nfc-hub" and parts[1] is slug.
+      // GitHub Pages project site -> slug is second segment
       if (location.hostname.toLowerCase().endsWith(".github.io")) {
-        if (first === "nfc-hub" && parts.length >= 2) return (parts[1] || "sample").toLowerCase();
+        return (parts[1] || "sample").trim();
       }
 
-      return first;
+      // Production -> slug is first segment
+      return (parts[0] || "sample").trim();
     }
 
     async function loadClient(slug) {
@@ -162,19 +191,13 @@
       const wrap = $("linksWrap");
       if (!wrap) return;
 
-      // Only count visible children
       const visible = Array.from(wrap.children).filter(el => !el.classList.contains("is-hidden"));
-
-      // Remove layout classes first
       wrap.classList.remove("links--grid");
 
-      // If we have 3+ buttons, switch to 2-col grid
       if (visible.length >= 3) wrap.classList.add("links--grid");
 
-      // Clear any old "last full" markings
       visible.forEach(el => el.classList.remove("btn--last-full"));
 
-      // If odd count (and grid mode), make the last one span both columns
       if (wrap.classList.contains("links--grid") && visible.length % 2 === 1) {
         const last = visible[visible.length - 1];
         if (last) last.classList.add("btn--last-full");
@@ -184,8 +207,9 @@
     function applyClient(c) {
       // Theme (cache-bust so switching themes shows immediately)
       const themeHref = c.theme
-        ? (c.theme.startsWith("/") ? c.theme : `/themes/${c.theme}`)
+        ? (c.theme.startsWith("/") ? `${BASE}${c.theme.replace(/^\//, "")}` : `${BASE}themes/${c.theme}`)
         : DEFAULT_THEME;
+
       $("themeStylesheet").href = `${themeHref}?v=${Date.now()}`;
 
       // Title + footer brand
@@ -196,18 +220,17 @@
       document.title = title;
       $("footerBrand").textContent = title;
 
-      // Brand line: if businessName blank, use contact name; if both blank, hide
       if (!setTextOrHide($("brand"), businessName || contactName)) {
         $("brand").textContent = " ";
       }
 
-      // Tagline + about
       setTextOrHide($("tagline"), c.tagline);
+
       const hasAbout = setTextOrHide($("about"), c.about);
       if (!hasAbout) hide($("aboutSection")); else show($("aboutSection"));
 
       // Logo (optional)
-      const logoPath = (c.logoPath || "").trim() || "/logo.jpg";
+      const logoPath = (c.logoPath || "").trim() || `${BASE}logo.jpg`;
       $("logoImg").src = logoPath;
       $("logoImg").alt = `${title} logo`;
 
@@ -220,7 +243,7 @@
         $("logoLink").href = "#";
       }
 
-      // Links (auto-hide if blank)
+      // Links
       setHrefOrHide($("btnWebsite"), c.links?.website);
       setHrefOrHide($("btnFacebook"), c.links?.facebook);
       setHrefOrHide($("btnInstagram"), c.links?.instagram);
@@ -231,16 +254,18 @@
       setHrefOrHide($("btnCashApp"), c.links?.cashapp);
       setHrefOrHide($("btnVenmo"), c.links?.venmo);
 
-      // vCard (hide if missing)
+      // vCard
       const vcardPath = (c.vcardPath || "").trim();
       if (vcardPath) {
-        $("btnVcard").href = vcardPath;
+        $("btnVcard").href = vcardPath.startsWith("/")
+          ? `${BASE}${vcardPath.replace(/^\//, "")}`
+          : vcardPath;
         show($("btnVcard"));
       } else {
         hide($("btnVcard"));
       }
 
-      // Contact info rows (auto-hide)
+      // Contact info rows
       const nameOk = setTextOrHide($("contactName"), c.contact?.name);
       if (!nameOk) hide($("rowName")); else show($("rowName"));
 
@@ -264,7 +289,7 @@
         hide($("rowEmail"));
       }
 
-      // Quick actions (auto-hide each pill)
+      // Quick actions
       if (phoneE164) {
         $("pillCall").href = `tel:${phoneE164}`; show($("pillCall"));
         $("pillText").href = `sms:${phoneE164}`; show($("pillText"));
@@ -279,26 +304,21 @@
         hide($("pillEmail"));
       }
 
-      // If no quick actions left, hide the whole row
       const anyPill = [ $("pillCall"), $("pillText"), $("pillEmail") ]
         .some(el => el && !el.classList.contains("is-hidden"));
       if (!anyPill) hide($("quickActions")); else show($("quickActions"));
 
-      // If all contact rows hidden, hide Contact section
       const anyContactRow = [ $("rowName"), $("rowPhone"), $("rowEmail") ]
         .some(el => el && !el.classList.contains("is-hidden"));
       if (!anyContactRow) hide($("contactSection")); else show($("contactSection"));
 
-      // Final: make link grid pretty after hiding blanks
       rebalanceLinkGrid();
     }
 
     async function main() {
       $("year").textContent = new Date().getFullYear();
 
-      // =========================================================
-      // ✅ SPA RESTORE BLOCK (works with your 404.html)
-      // =========================================================
+      // SPA restore block (works with your 404.html)
       const redirectPath = sessionStorage.redirectPath;
       if (redirectPath) {
         sessionStorage.removeItem("redirectPath");
