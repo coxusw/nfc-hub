@@ -1,492 +1,309 @@
 <!doctype html>
-<!-- =========================================================
-  NFC Theme Gallery (No search bar) + Paywall handoff
-  File: /theme-gallery/index.html
-
-  What it does:
-  - Lists /themes/*.css automatically via GitHub API
-  - Shows a thumbnail preview (iframe) for each theme
-  - Category dropdown filters by filename prefix:
-      luxury-*, business-*, animated-*, other
-  - "Use this theme" sends user to /pay/ with ?theme=...&slug=...
-    - Slug is taken from the slug input (recommended)
-    - Or prefilled from URL ?slug=...
-
-  REQUIREMENTS:
-  - Repo must be PUBLIC (GitHub API listing works without token)
-  - /preview/ route must exist (your preview/index.html)
-  - /pay/ route must exist (your pay/index.html)
-========================================================= -->
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NFC Theme Gallery</title>
-  <meta name="description" content="Browse themes for your NFC contact page." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NFC Theme Gallery</title>
 
-  <style>
-    :root{
-      --bg1:#050816; --bg2:#0b1020;
-      --card:rgba(255,255,255,.06);
-      --border:rgba(255,255,255,.12);
-      --text:#eef2ff; --muted:#b6c2ff;
-      --chip:rgba(255,255,255,.08);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 20% 20%, rgba(6,182,212,.18) 0%, transparent 45%),
-        radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
-        linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
-      min-height:100vh;
-    }
-    header{ padding:28px 18px 14px; text-align:center; }
-    h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:32px; }
-    .sub{margin:10px auto 0; max-width:1000px; color:var(--muted); line-height:1.5}
-    .wrap{max-width:1150px; margin:0 auto; padding:14px 16px 40px}
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-    .controls{
-      display:flex; gap:10px; flex-wrap:wrap;
-      align-items:flex-end; justify-content:center;
-      margin:14px 0 18px;
-    }
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width:260px;
-    }
-    label{ font-size:12px; color:var(--muted); letter-spacing:.02em; }
-    select, input{
-      background:rgba(0,0,0,.22);
-      border:1px solid var(--border);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      outline:none;
-      width:100%;
-    }
-    .pill{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 12px; border-radius:999px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.08);
-      color:var(--text);
-      text-decoration:none;
-      font-weight:700;
-      cursor:pointer;
-      user-select:none;
-      height:40px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-      gap:14px;
-    }
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:14px;
-      box-shadow:0 18px 60px rgba(0,0,0,.25);
-    }
-    .name{ font-weight:800; margin:0 0 8px; font-size:14px; word-break:break-word; }
-    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
-    .chip{
-      font-size:12px; padding:6px 10px; border-radius:999px;
-      background:var(--chip);
-      border:1px solid rgba(255,255,255,.10);
-      color:var(--muted);
-    }
+<style>
 
-    /* Thumbnail preview */
-    .thumb{
-      width:100%;
-      height:320px;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:14px;
-      overflow:hidden;
-      background: rgba(0,0,0,.20);
-    }
-    .thumb iframe{
-      width:100%;
-      height:100%;
-      border:0;
-    }
+:root{
+  --bg1:#050816;
+  --bg2:#0b1020;
+  --card:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.12);
+  --text:#eef2ff;
+  --muted:#b6c2ff;
+}
 
-    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
-    .btn{
-      flex:1; min-width:130px; text-align:center;
-      padding:10px 12px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.10);
-      color:var(--text);
-      text-decoration:none;
-      font-weight:800;
-      cursor:pointer;
-    }
-    .btn.primary{
-      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
-      border-color:rgba(34,197,94,.28);
-    }
+body{
+  margin:0;
+  font-family:Inter,system-ui;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(6,182,212,.18), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(167,139,250,.14), transparent 45%),
+    linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
+}
 
-    .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
-    #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
-    footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
-    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
-    
-    /* SLUG INPUT HIGHLIGHT (NEW) */
+.wrap{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
 
-.slug-wrap{
-  width:100%;
-  max-width:500px;
-  margin:0 auto 12px auto;
+header{
   text-align:center;
+}
+
+h1{
+  font-family:Fraunces;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
+
+.thumb{
+  width:100%;
+  height:300px;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.thumb iframe{
+  width:100%;
+  height:100%;
+  border:none;
+}
+
+.btn{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  text-decoration:none;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.slug-box{
+  text-align:center;
+  margin:20px auto;
+  max-width:420px;
 }
 
 .slug-label{
   display:block;
-  font-weight:900;
   margin-bottom:6px;
-  font-size:16px;
+  font-weight:600;
 }
 
 .slug-input{
   width:100%;
-  padding:14px 14px;
-  border-radius:14px;
-
-  border:2px solid #ef4444; /* RED BORDER */
-  background:rgba(0,0,0,.35);
-  color:#fff;
-
+  padding:12px;
+  border-radius:10px;
+  border:2px solid #ff4d4d;
+  background:#111;
+  color:white;
   font-size:16px;
-  font-weight:700;
-  text-align:center;
-
-  outline:none;
-
-  box-shadow:
-    0 0 0 1px rgba(239,68,68,.35),
-    0 0 18px rgba(239,68,68,.25);
 }
 
-.slug-input:focus{
-  border-color:#ff6b6b;
-  box-shadow:
-    0 0 0 2px rgba(239,68,68,.5),
-    0 0 28px rgba(239,68,68,.45);
+.slug-status{
+  margin-top:8px;
+  font-weight:600;
+}
+
+.slug-status.good{
+  color:#22c55e;
+}
+
+.slug-status.bad{
+  color:#ef4444;
 }
 
 .slug-help{
   margin-top:6px;
-  font-size:12px;
+  font-size:13px;
   color:var(--muted);
 }
 
-#slugPreview{
-  color:#22c55e;
-  font-weight:700;
-}
-  </style>
+</style>
 </head>
-
 <body>
-  <header>
-    <h1>Choose a theme</h1>
-    <p class="sub">
-      Browse themes and see a live thumbnail preview. Enter your desired link name (slug), then click <b>Use this theme</b>.
-    </p>
-  </header>
 
-  <main class="wrap">
-    <div class="controls">
+<div class="wrap">
 
-  <!-- SLUG INPUT (NEW) -->
-  <div class="slug-wrap">
-    <label for="slugInput" class="slug-label">
-      Choose your profile link (required)
-    </label>
+<header>
+<h1>Choose your theme</h1>
+</header>
 
-    <input
-      id="slugInput"
-      class="slug-input"
-      placeholder="example: john-doe or mybusiness"
-      autocomplete="off"
-    />
+<!-- SLUG INPUT -->
+<div class="slug-box">
 
-    <div class="slug-help">
-      Your profile will be:  
-      <code id="slugPreview">https://card.crestedcritters.com/your-slug</code>
-    </div>
-  </div>
+<label class="slug-label">Choose your profile link (required)</label>
 
-  <button class="pill" id="btnReload" type="button">Reload list</button>
+<input
+id="slugInput"
+class="slug-input"
+placeholder="example: john-doe"
+autocomplete="off"
+/>
+
+<div id="slugStatus" class="slug-status"></div>
+
+<div class="slug-help">
+Your profile will be:
+<code id="slugPreview">https://card.crestedcritters.com/your-slug</code>
+</div>
 
 </div>
 
-    <div id="status"></div>
-    <section class="grid" id="grid"></section>
+<div class="grid" id="grid"></div>
 
-    <footer>
-      Tip: If you add new CSS files into <code>/themes</code>, refresh this page and they will appear automatically.
-    </footer>
-  </main>
+</div>
 
 <script>
-/* =========================================================
-   ✅ EDIT HERE (your repo + host)
-========================================================= */
-const GITHUB_OWNER  = "coxusw";
-const GITHUB_REPO   = "nfc-hub";
-const GITHUB_BRANCH = "main";
 
-/* Your live Pages host (custom domain) */
-const BRAND_HOST = "card.crestedcritters.com";
-/* ========================================================= */
+const BRAND_HOST="card.crestedcritters.com";
 
-const $ = (id) => document.getElementById(id);
+const GITHUB_OWNER="coxusw";
+const GITHUB_REPO="nfc-hub";
+const GITHUB_BRANCH="main";
 
-function getParam(name){
-  return new URLSearchParams(location.search).get(name) || "";
-}
+const $=id=>document.getElementById(id);
+
+let ALL=[];
 
 function slugify(text){
-  return String(text || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]/g,"-")
-    .replace(/-+/g,"-")
-    .replace(/^-|-$/g,"");
+return text
+.toLowerCase()
+.trim()
+.replace(/[^a-z0-9]+/g,"-")
+.replace(/^-+|-+$/g,"");
 }
 
-function slugify(s){
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .replace(/https?:\/\/+/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+async function checkSlug(slug){
+
+if(!slug){
+$("slugStatus").textContent="";
+return;
 }
 
-function classify(file){
-  const n = file.toLowerCase();
-  if (n.startsWith("luxury-")) return "luxury";
-  if (n.startsWith("business-")) return "business";
-  if (n.startsWith("animated-")) return "animated";
-  return "other";
+$("slugPreview").textContent=
+`https://${BRAND_HOST}/${slug}`;
+
+try{
+
+const res=await fetch(
+`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/clients/${slug}.json`
+);
+
+if(res.status===404){
+
+$("slugStatus").textContent="✓ Available";
+$("slugStatus").className="slug-status good";
+
+}else{
+
+$("slugStatus").textContent="✗ Already taken";
+$("slugStatus").className="slug-status bad";
+
 }
 
-function humanize(file){
-  return file
-    .replace(/\.css$/i,"")
-    .replace(/[-_]+/g," ")
-    .replace(/\b\w/g, (m)=>m.toUpperCase());
+}catch{
+
+$("slugStatus").textContent="Error checking slug";
+$("slugStatus").className="slug-status bad";
+
 }
 
-function previewUrl(themeFile){
-  const u = new URL(`https://${BRAND_HOST}/preview/`);
-  u.searchParams.set("theme", themeFile);
-  u.searchParams.set("embed", "1"); // hides topbar, tighter layout
-
-  // Sample content for thumbnail preview only
-  u.searchParams.set("businessName", "Your Business Name");
-  u.searchParams.set("tagline", "Tagline or short promise");
-  u.searchParams.set("about", "This is a preview thumbnail.");
-  u.searchParams.set("website", "https://example.com");
-  u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("tiktok", "https://tiktok.com/");
-  u.searchParams.set("name", "Your Name");
-  u.searchParams.set("phone", "+11234567890");
-  u.searchParams.set("email", "you@example.com");
-  return u.toString();
 }
 
-function previewFullUrl(themeFile){
-  const u = new URL(`https://${BRAND_HOST}/preview/`);
-  u.searchParams.set("theme", themeFile);
+$("slugInput").addEventListener("input",e=>{
 
-  // Sample content for full preview
-  u.searchParams.set("businessName", "Your Business Name");
-  u.searchParams.set("tagline", "Tagline or short promise");
-  u.searchParams.set("about", "This is a full preview. Your real info will go here.");
-  u.searchParams.set("website", "https://example.com");
-  u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("tiktok", "https://tiktok.com/");
-  u.searchParams.set("name", "Your Name");
-  u.searchParams.set("phone", "+11234567890");
-  u.searchParams.set("email", "you@example.com");
-  return u.toString();
+const slug=slugify(e.target.value);
+
+e.target.value=slug;
+
+checkSlug(slug);
+
+});
+
+function previewUrl(theme){
+
+return `https://${BRAND_HOST}/preview/?theme=${theme}&embed=1`;
+
 }
 
-function getCurrentSlug(){
-  // Prefer URL ?slug=..., else use the input box.
-  const fromUrl = slugify(getParam("slug"));
-  if (fromUrl) return fromUrl;
+function payUrl(theme){
 
-  const fromInput = slugify(($("slugInput")?.value || ""));
-  return fromInput;
+const slug=$("slugInput").value;
+
+if(!slug){
+
+alert("Enter a slug first");
+
+return;
+
 }
 
-function payUrl(themeFile){
-  const u = new URL(`https://${BRAND_HOST}/pay/`);
-  u.searchParams.set("theme", themeFile);
+location.href=
+`https://${BRAND_HOST}/pay/?theme=${theme}&slug=${slug}`;
 
-  const slug = getCurrentSlug();
-  if (slug) u.searchParams.set("slug", slug);
-
-  return u.toString();
 }
 
 async function fetchThemes(){
-  const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
-  const res = await fetch(api, { headers: { "Accept":"application/vnd.github+json" }});
-  if(!res.ok){
-    throw new Error(`GitHub API error ${res.status}. Is the repo public, and does /themes exist?`);
-  }
-  const data = await res.json();
-  if(!Array.isArray(data)) throw new Error("Unexpected GitHub API response.");
-  return data
-    .filter(x=>x.type==="file" && x.name.toLowerCase().endsWith(".css"))
-    .map(x=>x.name)
-    .sort((a,b)=>a.localeCompare(b));
+
+const res=await fetch(
+`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${GITHUB_BRANCH}`
+);
+
+const data=await res.json();
+
+return data
+.filter(x=>x.name.endsWith(".css"))
+.map(x=>x.name);
+
 }
 
-function render(files){
+function render(){
 
-  const grid = $("grid");
-  grid.innerHTML = "";
+const grid=$("grid");
 
-  for(const f of files){
+grid.innerHTML="";
 
-    const title = humanize(f);
+ALL.forEach(theme=>{
 
-    const el = document.createElement("div");
-    el.className = "card";
+const card=document.createElement("div");
 
-    el.innerHTML = `
-      <div class="name">${title}</div>
+card.className="card";
 
-      <div class="chips">
-        <span class="chip"><code>${f}</code></span>
-      </div>
+card.innerHTML=`
 
-      <div class="thumb">
-        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
-      </div>
+<div>${theme}</div>
 
-      <div class="row">
-        <a class="btn" href="${previewFullUrl(f)}" target="_blank">Preview</a>
-        <button class="btn primary" data-use="${encodeURIComponent(f)}">
-          Use this theme
-        </button>
-      </div>
-    `;
+<div class="thumb">
+<iframe src="${previewUrl(theme)}"></iframe>
+</div>
 
-    grid.appendChild(el);
-  }
+<button class="btn">Use this theme</button>
 
-  attachUseHandlers();
+`;
 
-  $("status").textContent = `${files.length} theme(s) available.`;
-}
+card.querySelector("button").onclick=
+()=>payUrl(theme);
 
-  const grid = $("grid");
-  grid.innerHTML = "";
+grid.appendChild(card);
 
-  for(const f of filtered){
-    const c = classify(f);
-    const title = humanize(f);
-
-    const el = document.createElement("div");
-    el.className = "card";
-    el.innerHTML = `
-      <div class="name">${title}</div>
-      <div class="chips">
-        <span class="chip">${c}</span>
-        <span class="chip"><code>${f}</code></span>
-      </div>
-
-      <div class="thumb">
-        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
-      </div>
-
-      <div class="row">
-        <a class="btn" href="${previewFullUrl(f)}" target="_blank" rel="noopener">Preview</a>
-        <button class="btn primary" data-use="${encodeURIComponent(f)}" type="button">Use this theme</button>
-      </div>
-
-      <div class="meta">
-        “Use this theme” continues to activation/payment, then your intake form.
-      </div>
-    `;
-    grid.appendChild(el);
-  }
-
-  // Use handlers
-  grid.querySelectorAll("button[data-use]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
-
-      const slug = getCurrentSlug();
-      if (!slug) {
-        alert("Please enter a link name (slug) at the top first. Example: sam, john-doe, mybusiness");
-        $("slugInput")?.focus();
-        return;
-      }
-
-      // Go to paywall with theme + slug
-      location.href = payUrl(theme);
-    });
-  });
-
-  $("status").textContent = `${filtered.length} theme(s) shown.`;
-}
-
-let ALL = [];
-
-async function main(){
-  $("status").textContent = "Loading themes…";
-  try{
-    ALL = await fetchThemes();
-    render(ALL);
-  }catch(err){
-    $("status").textContent = err.message || String(err);
-    const slugInput = $("slugInput");
-const slugPreview = $("slugPreview");
-
-slugInput.addEventListener("input", ()=>{
-  const slug = slugify(slugInput.value);
-  slugPreview.textContent =
-    `https://${BRAND_HOST}/${slug || "your-slug"}`;
 });
-  }
+
 }
 
-/* Keep slug preview updated */
-function updateSlugPreview(){
-  const s = getCurrentSlug() || "your-slug";
-  $("slugPreview").textContent = s;
+async function init(){
+
+ALL=await fetchThemes();
+
+render();
+
 }
 
-$("slugInput")?.addEventListener("input", updateSlugPreview);
-$("btnReload").addEventListener("click", main);
+init();
 
-/* Prefill slug from URL into input (nice UX) */
-(function initSlug(){
-  const s = slugify(getParam("slug"));
-  if (s && $("slugInput")) $("slugInput").value = s;
-  updateSlugPreview();
-})();
-
-main();
 </script>
+
 </body>
 </html>
