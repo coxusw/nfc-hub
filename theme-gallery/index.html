@@ -9,12 +9,13 @@
   - Category dropdown filters by filename prefix:
       luxury-*, business-*, animated-*, other
   - "Use this theme" sends user to /pay/ with ?theme=...&slug=...
-    - If URL already has ?slug=... it uses it
-    - Else it prompts the user to enter a slug
+    - Slug is taken from the slug input (recommended)
+    - Or prefilled from URL ?slug=...
 
   REQUIREMENTS:
   - Repo must be PUBLIC (GitHub API listing works without token)
   - /preview/ route must exist (your preview/index.html)
+  - /pay/ route must exist (your pay/index.html)
 ========================================================= -->
 <html lang="en">
 <head>
@@ -52,17 +53,24 @@
 
     .controls{
       display:flex; gap:10px; flex-wrap:wrap;
-      align-items:center; justify-content:center;
+      align-items:flex-end; justify-content:center;
       margin:14px 0 18px;
     }
-    select{
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:260px;
+    }
+    label{ font-size:12px; color:var(--muted); letter-spacing:.02em; }
+    select, input{
       background:rgba(0,0,0,.22);
       border:1px solid var(--border);
       color:var(--text);
       padding:10px 12px;
       border-radius:12px;
       outline:none;
-      min-width:260px;
+      width:100%;
     }
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
@@ -74,6 +82,7 @@
       font-weight:700;
       cursor:pointer;
       user-select:none;
+      height:40px;
     }
     .grid{
       display:grid;
@@ -138,19 +147,31 @@
   <header>
     <h1>Choose a theme</h1>
     <p class="sub">
-      Browse themes and see a live thumbnail preview. When ready, click <b>Use this theme</b> to continue.
+      Browse themes and see a live thumbnail preview. Enter your desired link name (slug), then click <b>Use this theme</b>.
     </p>
   </header>
 
   <main class="wrap">
     <div class="controls">
-      <select id="category">
-        <option value="all">All</option>
-        <option value="luxury">Luxury</option>
-        <option value="business">Business</option>
-        <option value="animated">Animated</option>
-        <option value="other">Other</option>
-      </select>
+      <div class="field">
+        <label for="slugInput">Your link name (slug)</label>
+        <input id="slugInput" placeholder="example: sam, john-doe, mybusiness" autocomplete="off" />
+        <div class="sub" style="margin:0; font-size:12px;">
+          Your link will look like: <code>https://card.crestedcritters.com/<span id="slugPreview">your-slug</span></code>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="category">Theme category</label>
+        <select id="category">
+          <option value="all">All</option>
+          <option value="luxury">Luxury</option>
+          <option value="business">Business</option>
+          <option value="animated">Animated</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
       <button class="pill" id="btnReload" type="button">Reload list</button>
     </div>
 
@@ -178,6 +199,16 @@ const $ = (id) => document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
+}
+
+function slugify(s){
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/https?:\/\/+/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function classify(file){
@@ -230,10 +261,22 @@ function previewFullUrl(themeFile){
   return u.toString();
 }
 
-function payUrl(themeFile, slug){
+function getCurrentSlug(){
+  // Prefer URL ?slug=..., else use the input box.
+  const fromUrl = slugify(getParam("slug"));
+  if (fromUrl) return fromUrl;
+
+  const fromInput = slugify(($("slugInput")?.value || ""));
+  return fromInput;
+}
+
+function payUrl(themeFile){
   const u = new URL(`https://${BRAND_HOST}/pay/`);
   u.searchParams.set("theme", themeFile);
+
+  const slug = getCurrentSlug();
   if (slug) u.searchParams.set("slug", slug);
+
   return u.toString();
 }
 
@@ -253,7 +296,6 @@ async function fetchThemes(){
 
 function render(files){
   const cat = $("category").value;
-  const slugFromUrl = (getParam("slug") || "").trim();
 
   const filtered = files.filter(f=>{
     const c = classify(f);
@@ -283,7 +325,7 @@ function render(files){
 
       <div class="row">
         <a class="btn" href="${previewFullUrl(f)}" target="_blank" rel="noopener">Preview</a>
-        <button class="btn primary" data-use="${encodeURIComponent(f)}">Use this theme</button>
+        <button class="btn primary" data-use="${encodeURIComponent(f)}" type="button">Use this theme</button>
       </div>
 
       <div class="meta">
@@ -297,15 +339,16 @@ function render(files){
   grid.querySelectorAll("button[data-use]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
-      let slug = slugFromUrl;
 
-      if(!slug){
-        slug = prompt("Enter your desired slug (example: sam, john-doe, mybusiness):", "");
-        slug = (slug || "").trim().toLowerCase();
+      const slug = getCurrentSlug();
+      if (!slug) {
+        alert("Please enter a link name (slug) at the top first. Example: sam, john-doe, mybusiness");
+        $("slugInput")?.focus();
+        return;
       }
 
-      // Send them to paywall with theme + slug (slug optional)
-      location.href = payUrl(theme, slug);
+      // Go to paywall with theme + slug
+      location.href = payUrl(theme);
     });
   });
 
@@ -324,8 +367,22 @@ async function main(){
   }
 }
 
+/* Keep slug preview updated */
+function updateSlugPreview(){
+  const s = getCurrentSlug() || "your-slug";
+  $("slugPreview").textContent = s;
+}
+
+$("slugInput")?.addEventListener("input", updateSlugPreview);
 $("category").addEventListener("change", ()=>render(ALL));
 $("btnReload").addEventListener("click", main);
+
+/* Prefill slug from URL into input (nice UX) */
+(function initSlug(){
+  const s = slugify(getParam("slug"));
+  if (s && $("slugInput")) $("slugInput").value = s;
+  updateSlugPreview();
+})();
 
 main();
 </script>
