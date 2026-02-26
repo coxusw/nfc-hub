@@ -140,6 +140,60 @@
     #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
     footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    
+    /* SLUG INPUT HIGHLIGHT (NEW) */
+
+.slug-wrap{
+  width:100%;
+  max-width:500px;
+  margin:0 auto 12px auto;
+  text-align:center;
+}
+
+.slug-label{
+  display:block;
+  font-weight:900;
+  margin-bottom:6px;
+  font-size:16px;
+}
+
+.slug-input{
+  width:100%;
+  padding:14px 14px;
+  border-radius:14px;
+
+  border:2px solid #ef4444; /* RED BORDER */
+  background:rgba(0,0,0,.35);
+  color:#fff;
+
+  font-size:16px;
+  font-weight:700;
+  text-align:center;
+
+  outline:none;
+
+  box-shadow:
+    0 0 0 1px rgba(239,68,68,.35),
+    0 0 18px rgba(239,68,68,.25);
+}
+
+.slug-input:focus{
+  border-color:#ff6b6b;
+  box-shadow:
+    0 0 0 2px rgba(239,68,68,.5),
+    0 0 28px rgba(239,68,68,.45);
+}
+
+.slug-help{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+#slugPreview{
+  color:#22c55e;
+  font-weight:700;
+}
   </style>
 </head>
 
@@ -210,6 +264,15 @@ const $ = (id) => document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
+}
+
+function slugify(text){
+  return String(text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g,"-")
+    .replace(/-+/g,"-")
+    .replace(/^-|-$/g,"");
 }
 
 function slugify(s){
