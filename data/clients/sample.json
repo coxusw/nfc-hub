@@ -1,0 +1,29 @@
+{
+  "businessName": "Tap-Deck",
+  "tagline": "Smart NFC contact cards for modern networking.",
+  "about": "Tap-Deck lets you instantly share your contact info, links, and payment options with a single tap. No apps required — just tap and connect.",
+
+  "logoPath": "logo.jpg",
+
+  "theme": "theme-01-neon-dark.css",
+
+  "links": {
+    "website": "https://tap-deck.com",
+    "facebook": "",
+    "instagram": "",
+    "tiktok": "",
+    "linkedin": "",
+    "paypal": "",
+    "cashapp": "",
+    "venmo": ""
+  },
+
+  "contact": {
+    "name": "Tap-Deck",
+    "phoneE164": "",
+    "phoneDisplay": "",
+    "email": "hello@tap-deck.com"
+  },
+
+  "vcardPath": ""
+}
