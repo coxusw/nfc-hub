@@ -8,9 +8,10 @@
     "facebook": "https://www.facebook.com/p/Crested-Critters-61576805665752/",
     "instagram": "https://www.instagram.com/crested_critters/",
     "tiktok": "https://www.tiktok.com/@crested.critters",
+    "linkedin": "",
+    "paypal": "",
     "cashapp": "",
-    "venmo": "",
-    "paypal": ""
+    "venmo": ""
   },
   "contact": {
     "name": "Chris",
@@ -19,6 +20,6 @@
     "email": "Contact_us@crestedcritters.com"
   },
   "theme": "animated-neon-pulse.css",
-  "logoPath": "",
-  "vcardPath": "/vcards/crestedcritters.vcf"
+  "vcardPath": "/vcards/crestedcritters.vcf",
+  "logoPath": "/assets/logos/crestedcritters.png"
 }
