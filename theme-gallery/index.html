@@ -360,13 +360,43 @@ async function fetchThemes(){
 }
 
 function render(files){
-  const cat = $("category").value;
 
-  const filtered = files.filter(f=>{
-    const c = classify(f);
-    if(cat !== "all" && c !== cat) return false;
-    return true;
-  });
+  const grid = $("grid");
+  grid.innerHTML = "";
+
+  for(const f of files){
+
+    const title = humanize(f);
+
+    const el = document.createElement("div");
+    el.className = "card";
+
+    el.innerHTML = `
+      <div class="name">${title}</div>
+
+      <div class="chips">
+        <span class="chip"><code>${f}</code></span>
+      </div>
+
+      <div class="thumb">
+        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
+      </div>
+
+      <div class="row">
+        <a class="btn" href="${previewFullUrl(f)}" target="_blank">Preview</a>
+        <button class="btn primary" data-use="${encodeURIComponent(f)}">
+          Use this theme
+        </button>
+      </div>
+    `;
+
+    grid.appendChild(el);
+  }
+
+  attachUseHandlers();
+
+  $("status").textContent = `${files.length} theme(s) available.`;
+}
 
   const grid = $("grid");
   grid.innerHTML = "";
