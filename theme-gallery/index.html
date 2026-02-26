@@ -153,27 +153,38 @@
 
   <main class="wrap">
     <div class="controls">
-      <div class="field">
-        <label for="slugInput">Your link name (slug)</label>
-        <input id="slugInput" placeholder="example: sam, john-doe, mybusiness" autocomplete="off" />
-        <div class="sub" style="margin:0; font-size:12px;">
-          Your link will look like: <code>https://card.crestedcritters.com/<span id="slugPreview">your-slug</span></code>
-        </div>
-      </div>
 
-      <div class="field">
-        <label for="category">Theme category</label>
-        <select id="category">
-          <option value="all">All</option>
-          <option value="luxury">Luxury</option>
-          <option value="business">Business</option>
-          <option value="animated">Animated</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+  <!-- SLUG INPUT (NEW) -->
+  <div class="slug-wrap">
+    <label for="slugInput" class="slug-label">
+      Choose your profile link (required)
+    </label>
 
-      <button class="pill" id="btnReload" type="button">Reload list</button>
+    <input
+      id="slugInput"
+      class="slug-input"
+      placeholder="example: john-doe or mybusiness"
+      autocomplete="off"
+    />
+
+    <div class="slug-help">
+      Your profile will be:  
+      <code id="slugPreview">https://card.crestedcritters.com/your-slug</code>
     </div>
+  </div>
+
+  <!-- CATEGORY DROPDOWN -->
+  <select id="category">
+    <option value="all">All</option>
+    <option value="luxury">Luxury</option>
+    <option value="business">Business</option>
+    <option value="animated">Animated</option>
+    <option value="other">Other</option>
+  </select>
+
+  <button class="pill" id="btnReload" type="button">Reload list</button>
+
+</div>
 
     <div id="status"></div>
     <section class="grid" id="grid"></section>
