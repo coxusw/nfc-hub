@@ -21,6 +21,7 @@
       --card:rgba(255,255,255,.06);
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
+      --warn:rgba(245,158,11,.18);
     }
     *{box-sizing:border-box}
     body{
@@ -56,6 +57,17 @@
       text-decoration:none;
       cursor:pointer;
     }
+    .notice{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--warn);
+      color:var(--text);
+      display:none;
+      white-space:pre-wrap;
+      line-height:1.35;
+    }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
     .small{font-size:12px; color:var(--muted)}
   </style>
@@ -70,6 +82,8 @@
 
       <a class="btn" id="continueBtn" href="#">Continue to intake form</a>
 
+      <div class="notice" id="notice"></div>
+
       <div class="small" style="margin-top:10px;">
         If you get stuck, return to the theme gallery and try again.
       </div>
@@ -77,13 +91,28 @@
   </main>
 
 <script>
-/* ✅ EDIT THESE */
-const GOOGLE_FORM_URL = "const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";";
+/* =========================================================
+   ✅ EDIT THESE
+========================================================= */
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
+/* ========================================================= */
+
+function $(id){ return document.getElementById(id); }
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
+}
+
+function slugify(s){
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/https?:\/\/+/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function buildFormUrl(theme, slug){
@@ -94,9 +123,19 @@ function buildFormUrl(theme, slug){
 }
 
 const theme = (getParam("theme") || "").trim();
-const slug  = (getParam("slug") || "").trim().toLowerCase();
+const slug  = slugify(getParam("slug") || "");
 
-document.getElementById("continueBtn").href = buildFormUrl(theme, slug);
+const btn = $("continueBtn");
+btn.href = buildFormUrl(theme, slug);
+
+// Friendly warning if something is missing
+if (!theme || !slug){
+  const n = $("notice");
+  n.style.display = "block";
+  n.textContent =
+    "Missing theme or slug.\n\n" +
+    "Go back to the theme gallery and click “Use this theme” again (and make sure you enter a slug).";
+}
 </script>
 </body>
 </html>
