@@ -1,1 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Create your profile</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg1:#050816;
+  --bg2:#0b1020;
+  --card:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.12);
+  --text:#eef2ff;
+  --muted:#b6c2ff;
+}
+
+body{
+  margin:0;
+  font-family:Inter,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(6,182,212,.18), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(167,139,250,.14), transparent 45%),
+    linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
+}
+
+.wrap{
+  max-width:900px;
+  margin:auto;
+  padding:30px 16px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+}
+
+h1{
+  font-family:Fraunces,serif;
+  margin:0 0 10px;
+}
+
+.sub{
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* Form iframe styling */
+iframe{
+  width:100%;
+  height:1200px;
+  border:none;
+  border-radius:14px;
+  background:white;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="card">
+
+    <h1>Create your profile</h1>
+    <div class="sub">
+      Fill out the form below to activate your Crested Critters NFC profile.
+    </div>
+
+    <iframe
+      src="https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?embedded=true">
+    </iframe>
+
+  </div>
+</div>
+
+</body>
+</html>
