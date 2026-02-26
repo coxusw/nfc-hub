@@ -1,0 +1,24 @@
+{
+  "slug": "contact-card",
+  "businessName": "",
+  "tagline": "",
+  "about": "",
+  "links": {
+    "website": "",
+    "facebook": "",
+    "instagram": "",
+    "tiktok": "",
+    "cashapp": "",
+    "venmo": "",
+    "paypal": ""
+  },
+  "contact": {
+    "name": "",
+    "phoneE164": "",
+    "phoneDisplay": "",
+    "email": ""
+  },
+  "theme": "",
+  "logoPath": "",
+  "vcardPath": "/vcards/contact-card.vcf"
+}
