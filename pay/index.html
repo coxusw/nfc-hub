@@ -6,10 +6,10 @@
   WHAT THIS PAGE DOES
   - Reads ?theme=...&slug=...
   - Shows "Pay with Square" button
-  - Optional: allows a ONE-TIME bypass token (validated server-side via Apps Script Web App)
+  - Allows a ONE-TIME bypass token (validated by Apps Script Web App)
   - After valid token, redirects to Google Form with theme+slug prefilled
 
-  ✅ EDIT THESE AT THE TOP:
+  ✅ EDIT THESE:
   1) SQUARE_PAYMENT_LINK
   2) GOOGLE_FORM_URL
   3) THEME_QUERY_KEY, SLUG_QUERY_KEY
@@ -30,6 +30,7 @@
       --btnb:rgba(255,255,255,.16);
       --good:rgba(34,197,94,.18);
       --bad:rgba(239,68,68,.18);
+      --warn:rgba(245,158,11,.18);
     }
     *{box-sizing:border-box}
     body{
@@ -60,10 +61,13 @@
       border:1px solid var(--border);
       background:rgba(255,255,255,.08);
       color:var(--text);
-      font-weight:700;
+      font-weight:800;
       text-decoration:none;
-      cursor:pointer;
       user-select:none;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
     .btn{
       width:100%;
@@ -80,6 +84,10 @@
     .btn.primary{
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
       border-color:rgba(34,197,94,.30);
+    }
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
     }
     input{
       width:100%;
@@ -110,6 +118,7 @@
     }
     .notice.ok{ display:block; background:var(--good); color:var(--text); }
     .notice.bad{ display:block; background:var(--bad); color:var(--text); }
+    .notice.warn{ display:block; background:var(--warn); color:var(--text); }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
     .small{font-size:12px; color:var(--muted)}
   </style>
@@ -138,14 +147,14 @@
           Pay with Square
         </a>
         <div class="small" style="margin-top:8px;">
-          After payment, come back and you’ll be guided to the intake form.
+          After payment, come back here and use your bypass token (or we can add auto-verify later).
         </div>
       </div>
 
-      <div class="box">
+      <div class="box" id="tokenBox">
         <div style="font-weight:900; margin-bottom:8px;">Have a one-time bypass token?</div>
         <div class="small" style="margin-bottom:10px;">
-          Tokens are single-use and validated securely (not stored in this page).
+          Tokens are single-use and validated securely.
         </div>
 
         <input id="token" placeholder="Enter token (example: CCX-9F3K-2Q7M)" />
@@ -166,13 +175,15 @@
 /* =========================================================
    ✅ EDIT THESE
 ========================================================= */
-const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";  // your link
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";";
+const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
+
+// IMPORTANT: no extra quotes/semicolons here
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
 
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
 
-// Apps Script Web App URL (you’ll set this after deploying the script)
+// Apps Script Web App URL
 const TOKEN_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwdec2PZlZb3HSUJWETV14W4GiiGJdXia5NNrPt18HCGWy17X_vX3RQUbI47G5dGhlKug/exec";
 /* ========================================================= */
 
@@ -180,6 +191,16 @@ const $ = (id)=>document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
+}
+
+function slugify(s){
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/https?:\/\/+/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function showNotice(msg, kind){
@@ -196,23 +217,38 @@ function buildFormUrl(theme, slug){
   return u.toString();
 }
 
+function disableTokenUI(reason){
+  $("tokenBtn").disabled = true;
+  $("token").disabled = true;
+  showNotice(reason, "warn");
+}
+
 function main(){
   const theme = (getParam("theme") || "").trim();
-  const slug  = (getParam("slug") || "").trim().toLowerCase();
+  const slug  = slugify(getParam("slug") || "");
 
   $("themePill").textContent = theme || "Not set";
   $("slugPill").textContent  = slug  || "Not set";
 
-  // Payment link: we just open Square. (Payment verification will be a later upgrade.)
+  // Payment link (always available)
   $("payBtn").href = SQUARE_PAYMENT_LINK;
+
+  // If missing required info, stop here (prevents “blank” flows)
+  if (!theme || !slug) {
+    disableTokenUI(
+      "Missing theme or slug.\n\nGo back to the theme gallery and make sure you entered a slug, then click “Use this theme” again."
+    );
+    return;
+  }
+
+  if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
+    disableTokenUI("Token service not configured yet. (TOKEN_WEBAPP_URL not set.)");
+    return;
+  }
 
   $("tokenBtn").addEventListener("click", async ()=>{
     const token = ($("token").value || "").trim();
     if (!token) return showNotice("Enter a token first.", "bad");
-
-    if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
-      return showNotice("Token service not configured. (TOKEN_WEBAPP_URL not set yet)", "bad");
-    }
 
     showNotice("Validating token…", "");
 
@@ -230,7 +266,7 @@ function main(){
 
       // Server returns a ready-to-go form URL (with keys)
       showNotice("Token accepted! Sending you to the intake form…", "ok");
-      setTimeout(()=>{ location.href = data.formUrl; }, 650);
+      setTimeout(()=>{ location.href = data.formUrl || buildFormUrl(theme, slug); }, 650);
 
     }catch(err){
       showNotice("Token failed: " + (err.message || String(err)), "bad");
