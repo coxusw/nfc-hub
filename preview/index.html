@@ -1,271 +1,145 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Theme Preview (client-facing sandbox)
-  ---------------------------------------------------------
-  - Loads /base.css for layout
-  - Loads /themes/{theme}.css to override variables
-  - Uses query params for the preview content:
-      ?theme=...&businessName=...&tagline=...&about=...
-  - Special mode for gallery thumbnails:
-      ?embed=1
+  Tap-Deck — Theme Preview
+  File: /preview/index.html
+
+  Used by:
+  - Theme gallery thumbnail iframe
+  - Full preview button
+
+  Accepts:
+  ?theme=filename.css
+  ?embed=1 (hides header for thumbnails)
+  Other optional params:
+  businessName, tagline, about,
+  website, facebook, instagram, tiktok,
+  linkedin, paypal, cashapp, venmo,
+  name, phone, email
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Theme Preview</title>
+  <title>Tap-Deck Preview</title>
 
-  <link rel="stylesheet" href="/base.css" />
-  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <style>
-    /* Top toolbar (full preview only) */
-    .topbar{
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(12px);
-      background: rgba(0,0,0,.28);
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      padding: 10px 12px;
-    }
-    .topbar .inner{
-      max-width: 520px;
-      margin: 0 auto;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size:12px;
-      opacity:.9;
-    }
-    .mini{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
-    .mini a, .mini button{
-      border-radius:999px;
-      padding:8px 12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.08);
-      color: inherit;
-      font-weight:700;
-      cursor:pointer;
-      text-decoration:none;
-    }
-    .mini button{ font-family: inherit; }
-
-    /* =========================================================
-       EMBED MODE (used by theme-gallery thumbnails)
-       If URL has ?embed=1
-    ========================================================= */
-    body.embed .topbar{ display:none; }
-
-    /* Make thumbnail tighter + visually centered */
-    body.embed .wrap{
-      padding: 10px 10px;
-      min-height: auto;
-    }
-
-    /* Scale card down nicely inside iframe */
-    body.embed .card{
-      transform: scale(.90);
-      transform-origin: top center;
-    }
-
-    /* Hide things that look weird in a tiny thumbnail */
-    body.embed #btnVcard{ display:none; }
-  </style>
+  <!-- Base layout -->
+  <link rel="stylesheet" href="/base.css">
+  <!-- Theme will load dynamically -->
+  <link rel="stylesheet" id="themeStylesheet" href="">
 </head>
 
 <body>
-  <div class="topbar">
-    <div class="inner">
-      <div class="kbd">Theme: <span id="themeName">theme-01-neon-dark.css</span></div>
-      <div class="mini">
-        <button id="btnCopy">Copy theme name</button>
-        <a id="btnForm" href="#" target="_blank" rel="noopener" style="display:none;">Open intake form</a>
-      </div>
+  <main class="wrap" id="app">
+    <div id="headerBlock">
+      <h1>Preview Mode</h1>
+      <div class="tagline">This is a live preview of the selected theme.</div>
     </div>
-  </div>
 
-  <main class="wrap">
-    <section class="card">
-
-      <header class="hero">
-        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
-          <img class="logo" id="logoImg" src="/logo.jpg" alt="Business logo" />
-        </a>
-
-        <div class="titleblock">
-          <h1 class="brand" id="brand">Your Business Name</h1>
-          <p class="tagline" id="tagline"></p>
-        </div>
-      </header>
-
-      <nav class="links" aria-label="Primary links">
-  <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
-  <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
-  <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
-  <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
-  <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
-</nav>
-
-      <section class="section">
-        <h2>About</h2>
-        <p id="about"></p>
-      </section>
-
-      <section class="section">
-        <h2>Contact info</h2>
-
-        <div class="contact-grid">
-          <div class="contact-item">
-            <div class="label">Name</div>
-            <div class="value" id="contactName"></div>
-          </div>
-
-          <div class="contact-item">
-            <div class="label">Phone</div>
-            <div class="value"><a id="contactPhone" href="#"></a></div>
-          </div>
-
-          <div class="contact-item">
-            <div class="label">Email</div>
-            <div class="value"><a id="contactEmail" href="#"></a></div>
-          </div>
-        </div>
-
-        <div class="quick-actions" aria-label="Quick actions">
-          <a class="pill" id="pillCall" href="#">Call</a>
-          <a class="pill" id="pillText" href="#">Text</a>
-          <a class="pill" id="pillEmail" href="#">Email</a>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
-      </footer>
-
-    </section>
+    <div id="profileContent"></div>
   </main>
 
 <script>
-const DEFAULT_THEME = "theme-01-neon-dark.css";
-
-// Optional: add your Google Form prefill link so preview can jump to intake
-const GOOGLE_FORM_PREFILL_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url&entry.2114451287=test-theme.css";
-const THEME_QUERY_KEY = "entry.2114451287";
-
-const $ = (id)=>document.getElementById(id);
-
-function normalizeUrl(u){
-  const x = (u||"").trim();
-  if(!x) return "";
-  if(x.startsWith("http://") || x.startsWith("https://")) return x;
-  return "https://" + x;
-}
-
-function applyTheme(themeFile){
-  const theme = (themeFile || DEFAULT_THEME).trim();
-  $("themeName").textContent = theme;
-
-  const href = `/themes/${theme}`.replace("/themes//","/themes/");
-
-  // Cache-bust so theme switches show immediately
-  document.getElementById("themeStylesheet").href = href + `?v=${Date.now()}`;
-
-  return theme;
-}
+/* =========================================================
+   Helpers
+========================================================= */
+function $(id){ return document.getElementById(id); }
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function main(){
-  // If preview is embedded as a thumbnail, hide the topbar + tighten spacing
-  const isEmbed = (getParam("embed") === "1");
-  if (isEmbed) document.body.classList.add("embed");
-
-  $("year").textContent = new Date().getFullYear();
-
-  const theme = applyTheme(getParam("theme") || DEFAULT_THEME);
-
-  const businessName = getParam("businessName") || "Your Business Name";
-  const tagline = getParam("tagline") || "";
-  const about = getParam("about") || "";
-
-  const website = normalizeUrl(getParam("website"));
-const facebook = normalizeUrl(getParam("facebook"));
-const instagram = normalizeUrl(getParam("instagram"));
-const tiktok = normalizeUrl(getParam("tiktok"));
-
-  const name = getParam("name") || "Your Name";
-  const phone = (getParam("phone") || "").trim();
-  const email = (getParam("email") || "").trim();
-
-  document.title = `Preview — ${businessName}`;
-  $("brand").textContent = businessName;
-  $("footerBrand").textContent = businessName;
-  $("tagline").textContent = tagline;
-  $("about").textContent = about;
-
-  $("btnWebsite").href = website || "#";
-  $("btnFacebook").href = facebook || "#";
-  $("btnInstagram").href = instagram || "#";
-  $("btnTikTok").href = tiktok || "#";
-  $("logoLink").href = website || "#";
-
-  $("contactName").textContent = name;
-
-  $("contactPhone").href = phone ? `tel:${phone}` : "#";
-  $("contactPhone").textContent = phone || "";
-
-  $("contactEmail").href = email ? `mailto:${email}` : "#";
-  $("contactEmail").textContent = email || "";
-
-  $("pillCall").href = phone ? `tel:${phone}` : "#";
-  $("pillText").href = phone ? `sms:${phone}` : "#";
-  $("pillEmail").href = email ? `mailto:${email}` : "#";
-
-  // vCard disabled in preview (full preview shows it but clicking warns)
-  $("btnVcard").href = "#";
-  $("btnVcard").addEventListener("click", (e)=>{
-    e.preventDefault();
-    alert("This is only a preview. vCard will work on the final card.");
-  });
-
-  // Copy theme name
-  $("btnCopy").addEventListener("click", async ()=>{
-    try{
-      await navigator.clipboard.writeText(theme);
-      $("btnCopy").textContent = "Copied!";
-      setTimeout(()=>$("btnCopy").textContent="Copy theme name", 1200);
-    }catch{
-      alert("Theme: " + theme);
-    }
-  });
-
-  // Hide the form button in embed mode (thumbnails don’t need it)
-  if (!isEmbed && GOOGLE_FORM_PREFILL_URL && GOOGLE_FORM_PREFILL_URL.trim() !== ""){
-    const u = new URL(GOOGLE_FORM_PREFILL_URL);
-    u.searchParams.set(THEME_QUERY_KEY, theme);
-    $("btnForm").href = u.toString();
-    $("btnForm").style.display = "";
-  }
+function createButton(label, url){
+  if (!url) return null;
+  const a = document.createElement("a");
+  a.href = url;
+  a.className = "btn";
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = label;
+  return a;
 }
 
-main();
+/* =========================================================
+   Load Theme
+========================================================= */
+const theme = getParam("theme");
+if (theme){
+  $("themeStylesheet").href = "/themes/" + theme;
+}
+
+/* =========================================================
+   Hide header in embed mode
+========================================================= */
+if (getParam("embed") === "1"){
+  $("headerBlock").style.display = "none";
+}
+
+/* =========================================================
+   Build Preview Profile
+========================================================= */
+const content = $("profileContent");
+
+// Sample or provided data
+const profile = {
+  businessName: getParam("businessName") || "Your Business Name",
+  tagline: getParam("tagline") || "Your Tagline Here",
+  about: getParam("about") || "This is a preview of how your profile will look.",
+  links: {
+    website: getParam("website"),
+    facebook: getParam("facebook"),
+    instagram: getParam("instagram"),
+    tiktok: getParam("tiktok"),
+    linkedin: getParam("linkedin"),
+    paypal: getParam("paypal"),
+    cashapp: getParam("cashapp"),
+    venmo: getParam("venmo"),
+  }
+};
+
+// Business Name
+const h1 = document.createElement("h1");
+h1.textContent = profile.businessName;
+content.appendChild(h1);
+
+// Tagline
+if (profile.tagline){
+  const t = document.createElement("div");
+  t.className = "tagline";
+  t.textContent = profile.tagline;
+  content.appendChild(t);
+}
+
+// About
+if (profile.about){
+  const a = document.createElement("div");
+  a.className = "about";
+  a.textContent = profile.about;
+  content.appendChild(a);
+}
+
+// Buttons
+const grid = document.createElement("div");
+grid.className = "buttons";
+
+const buttons = [
+  createButton("Website", profile.links.website),
+  createButton("Facebook", profile.links.facebook),
+  createButton("Instagram", profile.links.instagram),
+  createButton("TikTok", profile.links.tiktok),
+  createButton("LinkedIn", profile.links.linkedin),
+  createButton("PayPal", profile.links.paypal),
+  createButton("Cash App", profile.links.cashapp),
+  createButton("Venmo", profile.links.venmo),
+].filter(Boolean);
+
+buttons.forEach(btn => grid.appendChild(btn));
+
+// If odd number, center last
+if (buttons.length % 2 === 1){
+  buttons[buttons.length - 1].classList.add("full");
+}
+
+content.appendChild(grid);
 </script>
 </body>
 </html>
