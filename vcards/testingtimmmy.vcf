@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:testingtimmy
+ORG:testing
+TEL;TYPE=CELL:+11023456789
+EMAIL;TYPE=INTERNET:chrisuswcox@gmail.com
+URL:https://google.com
+END:VCARD
