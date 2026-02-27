@@ -1,28 +1,28 @@
 <!doctype html>
 <!-- =========================================================
-  Tap-Deck — Theme Gallery + Paywall handoff
+  Tap-Deck — Theme Gallery + Paywall Handoff
   File: /theme-gallery/index.html
 
   What it does:
-  - Lists /themes/*.css automatically via GitHub API (repo must be PUBLIC)
-  - Shows a live thumbnail preview (iframe) for each theme
-  - Requires a slug (highlighted input at top)
-  - Instantly checks slug availability by probing:
-      https://www.tap-deck.com/data/clients/{slug}.json
-    (200 = taken, 404 = available)
-  - "Use this theme" sends user to:
-      https://www.tap-deck.com/pay/?theme=...&slug=...
+  - Lists /themes/*.css automatically via GitHub API
+  - Shows a thumbnail preview (iframe) for each theme
+  - User enters a REQUIRED slug (highlighted)
+  - Checks slug availability live by looking for:
+      /data/clients/{slug}.json  (GitHub Contents API)
+  - "Use this theme" -> sends to /pay/?theme=...&slug=...
 
-  NOTES
-  - No category dropdown (removed)
-  - No search bar (removed)
+  REQUIREMENTS:
+  - Repo must be PUBLIC (GitHub API listing works without token)
+  - /preview/ exists (your /preview/index.html)
+  - /pay/ exists (your paywall)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tap-Deck Theme Gallery</title>
-  <meta name="description" content="Choose a theme for your Tap-Deck profile." />
+  <meta name="description" content="Browse themes for your Tap-Deck profile." />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -34,9 +34,9 @@
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
       --chip:rgba(255,255,255,.08);
-      --good:rgba(34,197,94,.18);
-      --bad:rgba(239,68,68,.18);
-      --warn:rgba(245,158,11,.18);
+      --good: rgba(34,197,94,.20);
+      --bad: rgba(239,68,68,.20);
+      --warn: rgba(245,158,11,.20);
     }
     *{box-sizing:border-box}
     body{
@@ -49,108 +49,103 @@
         linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
       min-height:100vh;
     }
-    header{ padding:28px 18px 14px; text-align:center; }
+
+    header{ padding:28px 18px 10px; text-align:center; }
     h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:34px; }
-    .sub{margin:10px auto 0; max-width:1050px; color:var(--muted); line-height:1.5}
+    .sub{
+      margin:12px auto 0;
+      max-width:980px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:14px;
+    }
+
     .wrap{max-width:1180px; margin:0 auto; padding:14px 16px 40px}
 
     /* Slug input block */
-    .slug-block{
-      margin:16px auto 18px;
-      width:min(720px, 100%);
-      background:var(--card);
+    .slug-wrap{
+      max-width:720px;
+      margin: 14px auto 18px;
+      padding: 14px;
       border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
       border-radius:18px;
-      padding:14px;
-      box-shadow:0 18px 60px rgba(0,0,0,.22);
+      box-shadow:0 18px 60px rgba(0,0,0,.18);
       text-align:center;
     }
     .slug-title{
       font-weight:900;
-      margin:0 0 6px 0;
-      letter-spacing:.02em;
+      margin:0 0 8px 0;
+      font-size:14px;
     }
     .slug-sub{
       margin:0 0 12px 0;
       color:var(--muted);
       font-size:13px;
-      line-height:1.4;
+      line-height:1.45;
     }
-    .slug-row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:center;
-      flex-wrap:wrap;
-    }
-    #slugInput{
-      width:min(520px, 100%);
+    .slug-input{
+      width:min(520px,100%);
       padding:12px 12px;
-      border-radius:14px;
-      outline:none;
-      border:2px solid rgba(239,68,68,.75); /* RED highlight */
+      border-radius:12px;
+      border:2px solid rgba(239,68,68,.75); /* RED OUTLINE */
       background:rgba(0,0,0,.22);
       color:var(--text);
+      outline:none;
+      text-align:center;
       font-weight:800;
       letter-spacing:.02em;
     }
-    #slugInput::placeholder{ color:rgba(182,194,255,.8); font-weight:700; }
-    .slug-status{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.06);
-      color:var(--muted);
-      display:none;
-      line-height:1.35;
-      text-align:left;
-    }
-    .slug-status.ok{ display:block; background:var(--good); color:var(--text); }
-    .slug-status.bad{ display:block; background:var(--bad); color:var(--text); }
-    .slug-status.warn{ display:block; background:var(--warn); color:var(--text); }
-
-    .slug-preview{
+    .slug-help{
       margin-top:10px;
       color:var(--muted);
       font-size:12px;
       line-height:1.4;
     }
-    .slug-preview code{
-      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size:12px;
-      color:var(--text);
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      padding:3px 7px;
-      border-radius:999px;
+    .slug-status{
       display:inline-block;
-      margin-top:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.08);
+      color: var(--muted);
+      font-weight:800;
+      margin-bottom:8px;
     }
+    .slug-status.ok{ background: var(--good); color: var(--text); }
+    .slug-status.bad{ background: var(--bad); color: var(--text); }
+    .slug-status.warn{ background: var(--warn); color: var(--text); }
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
 
-    /* Controls row (reload only) */
+    /* Top controls */
     .controls{
       display:flex; gap:10px; flex-wrap:wrap;
       align-items:center; justify-content:center;
-      margin:0 0 18px;
+      margin: 10px 0 16px;
     }
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:999px;
+      padding:10px 12px; border-radius:999px;
       border:1px solid var(--border);
       background:rgba(255,255,255,.08);
       color:var(--text);
       text-decoration:none;
-      font-weight:900;
+      font-weight:800;
       cursor:pointer;
       user-select:none;
     }
 
-    #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
+    #status{
+      text-align:center;
+      margin: 0 0 14px;
+      color: var(--muted);
+      min-height: 18px;
+    }
 
+    /* Theme cards */
     .grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));
+      grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
       gap:14px;
     }
     .card{
@@ -160,8 +155,9 @@
       padding:14px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
-    .name{ font-weight:900; margin:0 0 8px; font-size:14px; word-break:break-word; }
-    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
+    .name{ font-weight:900; margin:0 0 10px; font-size:14px; word-break:break-word; }
+
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
     .chip{
       font-size:12px; padding:6px 10px; border-radius:999px;
       background:var(--chip);
@@ -169,7 +165,6 @@
       color:var(--muted);
     }
 
-    /* Thumbnail preview */
     .thumb{
       width:100%;
       height:320px;
@@ -178,7 +173,11 @@
       overflow:hidden;
       background: rgba(0,0,0,.20);
     }
-    .thumb iframe{ width:100%; height:100%; border:0; }
+    .thumb iframe{
+      width:100%;
+      height:100%;
+      border:0;
+    }
 
     .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
     .btn{
@@ -195,14 +194,16 @@
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
       border-color:rgba(34,197,94,.30);
     }
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
 
     .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
-    footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
-    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+
+    footer{
+      margin-top:18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      padding:10px 0 24px;
+    }
   </style>
 </head>
 
@@ -210,28 +211,27 @@
   <header>
     <h1>Choose a theme</h1>
     <p class="sub">
-      Step 1: Pick your <b>slug</b> (your unique link). Step 2: Choose a theme. Step 3: Activate.
+      Step 1: Pick your link (slug). Step 2: Choose a theme. Step 3: Activate and fill out your info.
     </p>
   </header>
 
   <main class="wrap">
 
-    <!-- Slug input (required) -->
-    <section class="slug-block">
-      <div class="slug-title">Your slug (required)</div>
-      <div class="slug-sub">This becomes your link. Example: <b>www.tap-deck.com/john-doe</b></div>
+    <!-- SLUG INPUT -->
+    <div class="slug-wrap">
+      <div class="slug-title">Choose your profile link (required)</div>
+      <p class="slug-sub">
+        This becomes your shareable profile URL. Example: <code>john-doe</code> or <code>mybusiness</code>
+      </p>
 
-      <div class="slug-row">
-        <input id="slugInput" placeholder="Enter your slug (example: john-doe)" autocomplete="off" inputmode="text" />
-      </div>
+      <input id="slugInput" class="slug-input" placeholder="Enter your slug (example: john-doe)" autocomplete="off" />
 
-      <div id="slugStatus" class="slug-status"></div>
-
-      <div class="slug-preview">
+      <div class="slug-help">
+        <div id="slugStatus" class="slug-status warn">Enter a slug to check availability</div><br/>
         Your profile will be:
-        <div><code id="slugPreview">https://www.tap-deck.com/your-slug</code></div>
+        <code id="slugPreview">https://www.tap-deck.com/your-slug</code>
       </div>
-    </section>
+    </div>
 
     <div class="controls">
       <button class="pill" id="btnReload" type="button">Reload themes</button>
@@ -247,20 +247,23 @@
 
 <script>
 /* =========================================================
-   ✅ EDIT HERE (repo + live host)
+   ✅ EDIT HERE (your repo + live host)
 ========================================================= */
 const GITHUB_OWNER  = "coxusw";
-const GITHUB_REPO   = "tap-deck";   // <-- your new repo name
+const GITHUB_REPO   = "tap-deck";
 const GITHUB_BRANCH = "main";
 
-/* Your live Pages host (WWW) */
+/* Your live site host */
 const BRAND_HOST = "www.tap-deck.com";
 /* ========================================================= */
 
 const $ = (id) => document.getElementById(id);
 
-function getParam(name){
-  return new URLSearchParams(location.search).get(name) || "";
+function humanize(file){
+  return file
+    .replace(/\.css$/i,"")
+    .replace(/[-_]+/g," ")
+    .replace(/\b\w/g, (m)=>m.toUpperCase());
 }
 
 function slugify(input){
@@ -272,18 +275,10 @@ function slugify(input){
     .replace(/^-|-$/g, "");
 }
 
-function humanize(file){
-  return file
-    .replace(/\.css$/i,"")
-    .replace(/[-_]+/g," ")
-    .replace(/\b\w/g, (m)=>m.toUpperCase());
-}
-
-function showSlugStatus(msg, kind){
+function setSlugStatus(text, kind){
   const el = $("slugStatus");
   el.className = "slug-status " + (kind || "");
-  el.textContent = msg || "";
-  el.style.display = msg ? "" : "none";
+  el.textContent = text;
 }
 
 function setSlugPreview(slug){
@@ -291,23 +286,15 @@ function setSlugPreview(slug){
   $("slugPreview").textContent = `https://${BRAND_HOST}/${s}`;
 }
 
-function previewUrl(themeFile){
+function previewThumbUrl(themeFile){
   const u = new URL(`https://${BRAND_HOST}/preview/`);
   u.searchParams.set("theme", themeFile);
-  u.searchParams.set("embed", "1");
-
-  // Sample content for thumbnail preview only
+  u.searchParams.set("embed", "1"); // thumbnail mode
   u.searchParams.set("businessName", "Tap-Deck Preview");
-  u.searchParams.set("tagline", "A clean preview thumbnail");
-  u.searchParams.set("about", "This is a preview thumbnail.");
-  u.searchParams.set("website", "https://example.com");
-  u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("instagram", "https://instagram.com/");
-  u.searchParams.set("tiktok", "https://tiktok.com/");
-  u.searchParams.set("linkedin", "https://linkedin.com/");
-  u.searchParams.set("paypal", "https://paypal.me/");
-  u.searchParams.set("cashapp", "https://cash.app/$tapdeck");
-  u.searchParams.set("venmo", "https://venmo.com/");
+  u.searchParams.set("tagline", "Theme thumbnail preview");
+  u.searchParams.set("about", "This is a thumbnail preview.");
+  u.searchParams.set("website", "https://tap-deck.com");
+  u.searchParams.set("instagram", "@tapdeck");
   u.searchParams.set("name", "Your Name");
   u.searchParams.set("phone", "+11234567890");
   u.searchParams.set("email", "you@example.com");
@@ -317,18 +304,11 @@ function previewUrl(themeFile){
 function previewFullUrl(themeFile){
   const u = new URL(`https://${BRAND_HOST}/preview/`);
   u.searchParams.set("theme", themeFile);
-
   u.searchParams.set("businessName", "Tap-Deck Preview");
-  u.searchParams.set("tagline", "A full preview page");
+  u.searchParams.set("tagline", "Full preview");
   u.searchParams.set("about", "This is a full preview. Your real info will go here.");
-  u.searchParams.set("website", "https://example.com");
-  u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("instagram", "https://instagram.com/");
-  u.searchParams.set("tiktok", "https://tiktok.com/");
-  u.searchParams.set("linkedin", "https://linkedin.com/");
-  u.searchParams.set("paypal", "https://paypal.me/");
-  u.searchParams.set("cashapp", "https://cash.app/$tapdeck");
-  u.searchParams.set("venmo", "https://venmo.com/");
+  u.searchParams.set("website", "https://tap-deck.com");
+  u.searchParams.set("instagram", "@tapdeck");
   u.searchParams.set("name", "Your Name");
   u.searchParams.set("phone", "+11234567890");
   u.searchParams.set("email", "you@example.com");
@@ -338,67 +318,10 @@ function previewFullUrl(themeFile){
 function payUrl(themeFile, slug){
   const u = new URL(`https://${BRAND_HOST}/pay/`);
   u.searchParams.set("theme", themeFile);
-  if (slug) u.searchParams.set("slug", slug);
+  u.searchParams.set("slug", slug);
   return u.toString();
 }
 
-/* =========================================================
-   Slug availability check
-   - Checks if /data/clients/{slug}.json exists on your live domain
-   - 200 => taken
-   - 404 => available
-========================================================= */
-let slugCheckTimer = null;
-let LAST_SLUG_STATE = { slug:"", available:false, valid:false };
-
-async function checkSlugAvailability(slug){
-  if (!slug){
-    LAST_SLUG_STATE = { slug:"", available:false, valid:false };
-    showSlugStatus("Enter a slug to continue.", "warn");
-    setSlugPreview("");
-    return;
-  }
-
-  if (slug.length < 3){
-    LAST_SLUG_STATE = { slug, available:false, valid:false };
-    showSlugStatus("Slug is too short. Use at least 3 characters.", "bad");
-    setSlugPreview(slug);
-    return;
-  }
-
-  setSlugPreview(slug);
-  showSlugStatus("Checking availability…", "warn");
-
-  const url = `https://${BRAND_HOST}/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
-
-  try{
-    const res = await fetch(url, { method:"GET", cache:"no-store" });
-
-    if (res.ok){
-      // exists
-      LAST_SLUG_STATE = { slug, available:false, valid:true };
-      showSlugStatus(`Slug "${slug}" is already taken. Try a different one.`, "bad");
-      return;
-    }
-
-    if (res.status === 404){
-      LAST_SLUG_STATE = { slug, available:true, valid:true };
-      showSlugStatus(`Nice — "${slug}" is available.`, "ok");
-      return;
-    }
-
-    // other status
-    LAST_SLUG_STATE = { slug, available:false, valid:true };
-    showSlugStatus(`Could not verify slug (status ${res.status}). Try again.`, "warn");
-  }catch(err){
-    LAST_SLUG_STATE = { slug, available:false, valid:true };
-    showSlugStatus("Could not check slug (network). Try again.", "warn");
-  }
-}
-
-/* =========================================================
-   Theme list from GitHub
-========================================================= */
 async function fetchThemes(){
   const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
   const res = await fetch(api, { headers: { "Accept":"application/vnd.github+json" }});
@@ -413,23 +336,48 @@ async function fetchThemes(){
     .sort((a,b)=>a.localeCompare(b));
 }
 
+/* ---------------------------
+   Slug availability check
+   We check if data/clients/{slug}.json exists in GitHub
+---------------------------- */
+async function checkSlugAvailable(slug){
+  if(!slug) return { ok:false, status:"empty", available:false };
+
+  // If it doesn't slugify to same value, force them to use slugified version
+  const s = slugify(slug);
+  if(s !== slug){
+    return { ok:true, status:"slugified", available:false, suggested:s };
+  }
+
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/clients/${encodeURIComponent(slug)}.json?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const res = await fetch(url, { headers: { "Accept":"application/vnd.github+json" } });
+
+  if(res.status === 404) return { ok:true, status:"available", available:true };
+  if(res.ok) return { ok:true, status:"taken", available:false };
+
+  return { ok:false, status:"error", available:false, code:res.status };
+}
+
+/* ---------------------------
+   Render theme cards
+---------------------------- */
 function render(files){
   const grid = $("grid");
   grid.innerHTML = "";
 
-  for (const f of files){
+  for(const f of files){
     const title = humanize(f);
-
     const el = document.createElement("div");
     el.className = "card";
     el.innerHTML = `
       <div class="name">${title}</div>
+
       <div class="chips">
         <span class="chip"><code>${f}</code></span>
       </div>
 
       <div class="thumb">
-        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
+        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewThumbUrl(f)}"></iframe>
       </div>
 
       <div class="row">
@@ -438,7 +386,7 @@ function render(files){
       </div>
 
       <div class="meta">
-        Pick a slug above, then click “Use this theme” to activate.
+        “Use this theme” continues to activation/payment, then your intake form.
       </div>
     `;
     grid.appendChild(el);
@@ -446,36 +394,52 @@ function render(files){
 
   // Use handlers
   grid.querySelectorAll("button[data-use]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
+    btn.addEventListener("click", async ()=>{
       const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
-      const slug = slugify(($("slugInput").value || ""));
+      const raw = ($("slugInput").value || "").trim();
+      const slug = slugify(raw);
 
-      if (!slug){
-        showSlugStatus("Enter your slug first (required).", "bad");
+      if(!slug){
+        setSlugStatus("Slug is required before continuing.", "bad");
         $("slugInput").focus();
         return;
       }
 
-      if (!LAST_SLUG_STATE.valid || LAST_SLUG_STATE.slug !== slug){
-        showSlugStatus("Wait — checking slug first…", "warn");
-        checkSlugAvailability(slug);
-        return;
+      // force their input to slugified version
+      if(raw !== slug){
+        $("slugInput").value = slug;
+        setSlugPreview(slug);
       }
 
-      if (!LAST_SLUG_STATE.available){
-        showSlugStatus(`Slug "${slug}" is taken. Try a different one.`, "bad");
+      setSlugStatus("Checking availability…", "warn");
+      const r = await checkSlugAvailable(slug);
+
+      if(r.status === "slugified"){
+        setSlugStatus(`Please use: ${r.suggested}`, "bad");
+        $("slugInput").value = r.suggested;
+        setSlugPreview(r.suggested);
+        return;
+      }
+      if(!r.ok){
+        setSlugStatus(`Could not verify slug right now (error ${r.code || ""}). Try again.`, "bad");
+        return;
+      }
+      if(!r.available){
+        setSlugStatus("That slug is already taken. Please choose another.", "bad");
         $("slugInput").focus();
         return;
       }
 
+      // go to paywall
       location.href = payUrl(theme, slug);
     });
   });
 
-  $("status").textContent = `${files.length} theme(s) shown.`;
+  $("status").textContent = `${files.length} theme(s) loaded.`;
 }
 
 let ALL = [];
+let slugTimer = null;
 
 async function main(){
   $("status").textContent = "Loading themes…";
@@ -487,43 +451,51 @@ async function main(){
   }
 }
 
-/* =========================================================
-   Init: slug field
-========================================================= */
-function initSlugField(){
-  // prefill from ?slug=
-  const initial = slugify(getParam("slug"));
-  if (initial){
-    $("slugInput").value = initial;
+function onSlugInput(){
+  const raw = ($("slugInput").value || "").trim();
+  const slug = slugify(raw);
+
+  setSlugPreview(slug);
+
+  if(!raw){
+    setSlugStatus("Enter a slug to check availability", "warn");
+    return;
   }
 
-  // set preview immediately
-  setSlugPreview(initial);
-
-  // initial check
-  if (initial){
-    checkSlugAvailability(initial);
-  }else{
-    showSlugStatus("Enter a slug to continue.", "warn");
-  }
-
-  $("slugInput").addEventListener("input", ()=>{
-    // live slugify without being annoying (preserve cursor as best effort)
-    const raw = $("slugInput").value;
-    const s = slugify(raw);
-
-    if (raw !== s){
-      $("slugInput").value = s;
+  // Debounce checks
+  if(slugTimer) clearTimeout(slugTimer);
+  slugTimer = setTimeout(async ()=>{
+    // Normalize input into slugified
+    if(raw !== slug){
+      $("slugInput").value = slug;
     }
 
-    if (slugCheckTimer) clearTimeout(slugCheckTimer);
-    slugCheckTimer = setTimeout(()=>checkSlugAvailability(s), 350);
-  });
+    setSlugStatus("Checking availability…", "warn");
+    const r = await checkSlugAvailable(slug);
+
+    if(r.status === "slugified"){
+      setSlugStatus(`Please use: ${r.suggested}`, "bad");
+      $("slugInput").value = r.suggested;
+      setSlugPreview(r.suggested);
+      return;
+    }
+    if(!r.ok){
+      setSlugStatus(`Could not verify slug right now (error ${r.code || ""}).`, "bad");
+      return;
+    }
+    if(r.available){
+      setSlugStatus("Slug is available ✅", "ok");
+    }else{
+      setSlugStatus("Slug is taken ❌", "bad");
+    }
+  }, 300);
 }
 
 $("btnReload").addEventListener("click", main);
+$("slugInput").addEventListener("input", onSlugInput);
 
-initSlugField();
+// init preview line
+setSlugPreview("");
 main();
 </script>
 </body>
