@@ -1,145 +1,352 @@
 <!doctype html>
 <!-- =========================================================
-  Tap-Deck — Theme Preview
+  Tap-Deck — Theme Preview (client-facing sandbox)
   File: /preview/index.html
 
-  Used by:
-  - Theme gallery thumbnail iframe
-  - Full preview button
-
-  Accepts:
-  ?theme=filename.css
-  ?embed=1 (hides header for thumbnails)
-  Other optional params:
-  businessName, tagline, about,
-  website, facebook, instagram, tiktok,
-  linkedin, paypal, cashapp, venmo,
-  name, phone, email
+  - Loads /base.css for layout
+  - Loads /themes/{theme}.css to override variables
+  - Uses query params for preview content:
+      ?theme=...&businessName=...&tagline=...&about=...
+      &website=...&facebook=...&instagram=...&tiktok=...&linkedin=...
+      &paypal=...&cashapp=...&venmo=...
+      &name=...&phone=...&email=...
+      &embed=1   (used for theme-gallery thumbnails)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tap-Deck Preview</title>
+  <title>Theme Preview</title>
 
-  <!-- Base layout -->
-  <link rel="stylesheet" href="/base.css">
-  <!-- Theme will load dynamically -->
-  <link rel="stylesheet" id="themeStylesheet" href="">
+  <link rel="stylesheet" href="/base.css" />
+  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css" />
+  <link rel="icon" href="/logo.jpg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    .topbar{
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(0,0,0,.28);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      padding: 10px 12px;
+    }
+    .topbar .inner{
+      max-width: 520px; margin: 0 auto;
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; opacity:.9; }
+    .mini{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .mini button{
+      border-radius:999px;
+      padding:8px 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: inherit;
+      font-weight:800;
+      cursor:pointer;
+      text-decoration:none;
+    }
+
+    /* =========================================================
+       EMBED MODE (used by theme-gallery thumbnails)
+       If URL has ?embed=1
+    ========================================================= */
+    body.embed .topbar{ display:none; }
+    body.embed .wrap{ padding: 14px 12px; }
+    body.embed .card{ transform: scale(.92); transform-origin: top center; }
+  </style>
 </head>
 
 <body>
-  <main class="wrap" id="app">
-    <div id="headerBlock">
-      <h1>Preview Mode</h1>
-      <div class="tagline">This is a live preview of the selected theme.</div>
+  <div class="topbar">
+    <div class="inner">
+      <div class="kbd">Theme: <span id="themeName">theme-01-neon-dark.css</span></div>
+      <div class="mini">
+        <button id="btnCopy" type="button">Copy theme name</button>
+      </div>
     </div>
+  </div>
 
-    <div id="profileContent"></div>
+  <main class="wrap">
+    <section class="card">
+
+      <header class="hero" id="heroBlock">
+        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
+          <img class="logo" id="logoImg" src="/logo.jpg" alt="Logo" />
+        </a>
+
+        <div class="titleblock">
+          <h1 class="brand" id="brand">Your Name / Business</h1>
+          <p class="tagline" id="tagline"></p>
+        </div>
+      </header>
+
+      <!-- LINKS -->
+      <nav class="links" aria-label="Primary links" id="linksBlock">
+        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+        <a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+
+        <a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
+        <a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
+        <a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
+
+        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
+      </nav>
+
+      <!-- ABOUT -->
+      <section class="section" id="aboutBlock">
+        <h2>About</h2>
+        <p id="about"></p>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="section" id="contactBlock">
+        <h2>Contact info</h2>
+
+        <div class="contact-grid" id="contactGrid">
+          <div class="contact-item" id="rowName">
+            <div class="label">Name</div>
+            <div class="value" id="contactName"></div>
+          </div>
+
+          <div class="contact-item" id="rowPhone">
+            <div class="label">Phone</div>
+            <div class="value"><a id="contactPhone" href="#"></a></div>
+          </div>
+
+          <div class="contact-item" id="rowEmail">
+            <div class="label">Email</div>
+            <div class="value"><a id="contactEmail" href="#"></a></div>
+          </div>
+        </div>
+
+        <div class="quick-actions" aria-label="Quick actions" id="quickActions">
+          <a class="pill" id="pillCall" href="#">Call</a>
+          <a class="pill" id="pillText" href="#">Text</a>
+          <a class="pill" id="pillEmail" href="#">Email</a>
+        </div>
+      </section>
+
+      <footer class="footer" id="footerBlock">
+        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
+      </footer>
+
+    </section>
   </main>
 
 <script>
-/* =========================================================
-   Helpers
-========================================================= */
-function $(id){ return document.getElementById(id); }
+const DEFAULT_THEME = "theme-01-neon-dark.css";
+const $ = (id)=>document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function createButton(label, url){
-  if (!url) return null;
-  const a = document.createElement("a");
-  a.href = url;
-  a.className = "btn";
-  a.target = "_blank";
-  a.rel = "noopener";
-  a.textContent = label;
-  return a;
+function slugify(input){
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-/* =========================================================
-   Load Theme
-========================================================= */
-const theme = getParam("theme");
-if (theme){
-  $("themeStylesheet").href = "/themes/" + theme;
+function normalizeUrl(u){
+  const x = (u||"").trim();
+  if(!x) return "";
+  if(x.startsWith("http://") || x.startsWith("https://")) return x;
+  return "https://" + x;
 }
 
-/* =========================================================
-   Hide header in embed mode
-========================================================= */
-if (getParam("embed") === "1"){
-  $("headerBlock").style.display = "none";
-}
+function normalizeHandleOrUrl(value, kind){
+  const s = (value || "").trim();
+  if(!s) return "";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
 
-/* =========================================================
-   Build Preview Profile
-========================================================= */
-const content = $("profileContent");
-
-// Sample or provided data
-const profile = {
-  businessName: getParam("businessName") || "Your Business Name",
-  tagline: getParam("tagline") || "Your Tagline Here",
-  about: getParam("about") || "This is a preview of how your profile will look.",
-  links: {
-    website: getParam("website"),
-    facebook: getParam("facebook"),
-    instagram: getParam("instagram"),
-    tiktok: getParam("tiktok"),
-    linkedin: getParam("linkedin"),
-    paypal: getParam("paypal"),
-    cashapp: getParam("cashapp"),
-    venmo: getParam("venmo"),
+  if(kind === "instagram"){
+    if(s.startsWith("@")) return "https://instagram.com/" + s.slice(1);
+    if(!s.includes(".") && !s.includes("/") && !s.includes(" ")) return "https://instagram.com/" + s;
+    return "https://" + s;
   }
-};
-
-// Business Name
-const h1 = document.createElement("h1");
-h1.textContent = profile.businessName;
-content.appendChild(h1);
-
-// Tagline
-if (profile.tagline){
-  const t = document.createElement("div");
-  t.className = "tagline";
-  t.textContent = profile.tagline;
-  content.appendChild(t);
+  if(kind === "venmo"){
+    if(s.startsWith("@")) return "https://venmo.com/" + s.slice(1);
+    if(!s.includes(".") && !s.includes("/") && !s.includes(" ")) return "https://venmo.com/" + s;
+    return "https://" + s;
+  }
+  if(kind === "cashapp"){
+    if(s.startsWith("$")) return "https://cash.app/" + s;
+    if(!s.includes(".") && !s.includes("/") && !s.includes(" ")) return "https://cash.app/$" + s.replace(/^\$/,"");
+    return "https://" + s;
+  }
+  return "https://" + s;
 }
 
-// About
-if (profile.about){
-  const a = document.createElement("div");
-  a.className = "about";
-  a.textContent = profile.about;
-  content.appendChild(a);
+function applyTheme(themeFile){
+  const theme = (themeFile || DEFAULT_THEME).trim();
+  $("themeName").textContent = theme;
+  const href = `/themes/${theme}`.replace("/themes//","/themes/");
+  $("themeStylesheet").href = href + `?v=${Date.now()}`;
+  return theme;
 }
 
-// Buttons
-const grid = document.createElement("div");
-grid.className = "buttons";
-
-const buttons = [
-  createButton("Website", profile.links.website),
-  createButton("Facebook", profile.links.facebook),
-  createButton("Instagram", profile.links.instagram),
-  createButton("TikTok", profile.links.tiktok),
-  createButton("LinkedIn", profile.links.linkedin),
-  createButton("PayPal", profile.links.paypal),
-  createButton("Cash App", profile.links.cashapp),
-  createButton("Venmo", profile.links.venmo),
-].filter(Boolean);
-
-buttons.forEach(btn => grid.appendChild(btn));
-
-// If odd number, center last
-if (buttons.length % 2 === 1){
-  buttons[buttons.length - 1].classList.add("full");
+function setTextOrHide(blockEl, textEl, value){
+  const v = (value || "").trim();
+  if(!v){
+    blockEl.style.display = "none";
+    return false;
+  }
+  textEl.textContent = v;
+  blockEl.style.display = "";
+  return true;
 }
 
-content.appendChild(grid);
+function setLinkOrHide(aEl, url, label){
+  const u = (url || "").trim();
+  if(!u){
+    aEl.style.display = "none";
+    return false;
+  }
+  aEl.href = u;
+  if(label) aEl.textContent = label;
+  aEl.style.display = "";
+  return true;
+}
+
+function main(){
+  // embed thumbnails
+  if(getParam("embed") === "1") document.body.classList.add("embed");
+
+  $("year").textContent = new Date().getFullYear();
+
+  const theme = applyTheme(getParam("theme") || DEFAULT_THEME);
+
+  const businessName = (getParam("businessName") || "").trim();
+  const tagline = (getParam("tagline") || "").trim();
+  const about = (getParam("about") || "").trim();
+
+  const website   = normalizeUrl(getParam("website"));
+  const facebook  = normalizeUrl(getParam("facebook"));
+  const instagram = normalizeHandleOrUrl(getParam("instagram"), "instagram");
+  const tiktok    = normalizeUrl(getParam("tiktok"));
+  const linkedin  = normalizeUrl(getParam("linkedin"));
+  const paypal    = normalizeUrl(getParam("paypal"));
+  const cashapp   = normalizeHandleOrUrl(getParam("cashapp"), "cashapp");
+  const venmo     = normalizeHandleOrUrl(getParam("venmo"), "venmo");
+
+  const name  = (getParam("name") || "").trim();
+  const phone = (getParam("phone") || "").trim();
+  const email = (getParam("email") || "").trim();
+
+  // Brand/title: prefer businessName, else name, else placeholder
+  const title = businessName || name || "Tap-Deck Preview";
+  document.title = `Preview — ${title}`;
+
+  $("brand").textContent = title;
+  $("footerBrand").textContent = title;
+
+  // Tagline: hide if blank
+  if(!tagline){
+    $("tagline").style.display = "none";
+  }else{
+    $("tagline").style.display = "";
+    $("tagline").textContent = tagline;
+  }
+
+  // About: hide section if blank
+  if(!about){
+    $("aboutBlock").style.display = "none";
+  }else{
+    $("aboutBlock").style.display = "";
+    $("about").textContent = about;
+  }
+
+  // Logo + logo link
+  // (Preview uses default logo. If you want, add ?logo=/path/to/logo.png later.)
+  const logoParam = (getParam("logo") || "").trim();
+  const logoSrc = logoParam || "/logo.jpg";
+  $("logoImg").src = logoSrc;
+  $("logoImg").alt = title + " logo";
+  $("logoLink").href = website || "#";
+
+  // Buttons (auto-hide blanks)
+  let anyLink = false;
+  anyLink = setLinkOrHide($("btnWebsite"), website, "Website") || anyLink;
+  anyLink = setLinkOrHide($("btnFacebook"), facebook, "Facebook") || anyLink;
+  anyLink = setLinkOrHide($("btnInstagram"), instagram, "Instagram") || anyLink;
+  anyLink = setLinkOrHide($("btnTikTok"), tiktok, "TikTok") || anyLink;
+  anyLink = setLinkOrHide($("btnLinkedIn"), linkedin, "LinkedIn") || anyLink;
+
+  anyLink = setLinkOrHide($("btnPayPal"), paypal, "PayPal") || anyLink;
+  anyLink = setLinkOrHide($("btnCashApp"), cashapp, "Cash App") || anyLink;
+  anyLink = setLinkOrHide($("btnVenmo"), venmo, "Venmo") || anyLink;
+
+  // vCard preview is fake
+  $("btnVcard").href = "#";
+  $("btnVcard").addEventListener("click", (e)=>{
+    e.preventDefault();
+    alert("This is only a preview. vCard will work on the final profile.");
+  });
+
+  if(!anyLink){
+    $("linksBlock").style.display = "none";
+  }
+
+  // Contact blocks (auto-hide rows + pills)
+  if(!name){
+    $("rowName").style.display = "none";
+  }else{
+    $("rowName").style.display = "";
+    $("contactName").textContent = name;
+  }
+
+  if(!phone){
+    $("rowPhone").style.display = "none";
+    $("pillCall").style.display = "none";
+    $("pillText").style.display = "none";
+  }else{
+    $("rowPhone").style.display = "";
+    $("contactPhone").href = `tel:${phone}`;
+    $("contactPhone").textContent = phone;
+    $("pillCall").href = `tel:${phone}`;
+    $("pillText").href = `sms:${phone}`;
+  }
+
+  if(!email){
+    $("rowEmail").style.display = "none";
+    $("pillEmail").style.display = "none";
+  }else{
+    $("rowEmail").style.display = "";
+    $("contactEmail").href = `mailto:${email}`;
+    $("contactEmail").textContent = email;
+    $("pillEmail").href = `mailto:${email}`;
+  }
+
+  // Hide entire contact section if everything blank
+  const contactHasAnything = !!(name || phone || email);
+  if(!contactHasAnything){
+    $("contactBlock").style.display = "none";
+  }
+
+  // Copy theme name
+  $("btnCopy").addEventListener("click", async ()=>{
+    try{
+      await navigator.clipboard.writeText(theme);
+      $("btnCopy").textContent = "Copied!";
+      setTimeout(()=>$("btnCopy").textContent="Copy theme name", 1200);
+    }catch{
+      alert("Theme: " + theme);
+    }
+  });
+}
+
+main();
 </script>
 </body>
 </html>
