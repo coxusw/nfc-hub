@@ -1,25 +1,27 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Hub — Paywall
+  Tap-Deck — Paywall
   File: /pay/index.html
 
   WHAT THIS PAGE DOES
   - Reads ?theme=...&slug=...
   - Shows "Pay with Square" button
   - Allows a ONE-TIME bypass token (validated by Apps Script Web App)
-  - After valid token, redirects to Google Form with theme+slug prefilled
+  - If token is valid, redirects to Google Form with theme+slug prefilled
+  - Includes a "Continue after paying" button that routes to /pay/paid.html
+    (payment verification is not implemented yet)
 
-  ✅ EDIT THESE:
+  ✅ EDIT THESE (top):
   1) SQUARE_PAYMENT_LINK
   2) GOOGLE_FORM_URL
   3) THEME_QUERY_KEY, SLUG_QUERY_KEY
-  4) TOKEN_WEBAPP_URL  (Apps Script Web App URL)
+  4) TOKEN_WEBAPP_URL
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Activate your NFC Profile</title>
+  <title>Activate your Tap-Deck Profile</title>
   <style>
     :root{
       --bg1:#050816; --bg2:#0b1020;
@@ -63,6 +65,7 @@
       color:var(--text);
       font-weight:800;
       text-decoration:none;
+      cursor:pointer;
       user-select:none;
       max-width:100%;
       overflow:hidden;
@@ -85,9 +88,10 @@
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
       border-color:rgba(34,197,94,.30);
     }
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
+    .btn.secondary{
+      background:rgba(255,255,255,.08);
+      border-color:rgba(255,255,255,.14);
+      color:var(--text);
     }
     input{
       width:100%;
@@ -97,6 +101,7 @@
       background:rgba(0,0,0,.22);
       color:var(--text);
       outline:none;
+      font-weight:700;
     }
     .box{
       margin-top:14px;
@@ -118,9 +123,10 @@
     }
     .notice.ok{ display:block; background:var(--good); color:var(--text); }
     .notice.bad{ display:block; background:var(--bad); color:var(--text); }
-    .notice.warn{ display:block; background:var(--warn); color:var(--text); }
+    .notice.wait{ display:block; background:var(--warn); color:var(--text); }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
     .small{font-size:12px; color:var(--muted)}
+    .divider{height:1px; background:rgba(255,255,255,.10); margin:14px 0;}
   </style>
 </head>
 <body>
@@ -128,7 +134,7 @@
     <section class="card">
       <h1>Activate your profile</h1>
       <p class="sub">
-        Choose a theme → pay → fill out your info → your link goes live.
+        Choose a theme → pay (or use a token) → fill out your info → your link goes live.
       </p>
 
       <div class="box">
@@ -140,21 +146,29 @@
           <div class="small">Desired slug:</div>
           <span class="pill" id="slugPill">—</span>
         </div>
-      </div>
-
-      <div style="margin-top:14px;">
-        <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">
-          Pay with Square
-        </a>
-        <div class="small" style="margin-top:8px;">
-          After payment, come back here and use your bypass token (or we can add auto-verify later).
+        <div class="small" style="margin-top:10px;">
+          Your profile link will be:
+          <code id="profilePreview">https://tap-deck.com/your-slug</code>
         </div>
       </div>
 
-      <div class="box" id="tokenBox">
+      <div style="margin-top:14px;">
+        <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">Pay with Square</a>
+        <div class="small" style="margin-top:8px;">
+          After paying, click “Continue after paying” below.
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <a class="btn secondary" id="afterPayBtn" href="#">Continue after paying</a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="box">
         <div style="font-weight:900; margin-bottom:8px;">Have a one-time bypass token?</div>
         <div class="small" style="margin-bottom:10px;">
-          Tokens are single-use and validated securely.
+          Tokens are single-use and validated securely (not stored in this page).
         </div>
 
         <input id="token" placeholder="Enter token (example: CCX-9F3K-2Q7M)" />
@@ -166,7 +180,7 @@
       </div>
 
       <div class="small" style="margin-top:14px;">
-        By continuing you agree to submit accurate info. Slug must be unique.
+        Slug must be unique. If something looks wrong, go back and choose a different slug.
       </div>
     </section>
   </main>
@@ -175,15 +189,17 @@
 /* =========================================================
    ✅ EDIT THESE
 ========================================================= */
+const BRAND_HOST = "tap-deck.com";
+
 const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
 
-// IMPORTANT: no extra quotes/semicolons here
-const GOOGLE_FORM_URL = "https://card.crestedcritters.com/intake/";
+// IMPORTANT: this must be the *pp_url* base (no extra entry params hard-coded)
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
 
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
 
-// Apps Script Web App URL
+// Your Apps Script Web App /exec URL:
 const TOKEN_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwdec2PZlZb3HSUJWETV14W4GiiGJdXia5NNrPt18HCGWy17X_vX3RQUbI47G5dGhlKug/exec";
 /* ========================================================= */
 
@@ -193,12 +209,11 @@ function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function slugify(s){
-  return String(s || "")
+function slugify(input){
+  return String(input || "")
     .trim()
     .toLowerCase()
-    .replace(/https?:\/\/+/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
@@ -217,40 +232,47 @@ function buildFormUrl(theme, slug){
   return u.toString();
 }
 
-function disableTokenUI(reason){
-  $("tokenBtn").disabled = true;
-  $("token").disabled = true;
-  showNotice(reason, "warn");
-}
-
 function main(){
-  const theme = (getParam("theme") || "").trim();
-  const slug  = slugify(getParam("slug") || "");
+  const themeRaw = (getParam("theme") || "").trim();
+  const slugRaw  = (getParam("slug") || "").trim();
+
+  const theme = themeRaw;
+  const slug = slugify(slugRaw);
 
   $("themePill").textContent = theme || "Not set";
   $("slugPill").textContent  = slug  || "Not set";
+  $("profilePreview").textContent = `https://${BRAND_HOST}/${slug || "your-slug"}`;
 
-  // Payment link (always available)
+  // Always set Square button
   $("payBtn").href = SQUARE_PAYMENT_LINK;
 
-  // If missing required info, stop here (prevents “blank” flows)
-  if (!theme || !slug) {
-    disableTokenUI(
-      "Missing theme or slug.\n\nGo back to the theme gallery and make sure you entered a slug, then click “Use this theme” again."
-    );
-    return;
-  }
+  // Continue after paying -> paid.html carries same theme+slug
+  const paid = new URL(`https://${BRAND_HOST}/pay/paid.html`);
+  if (theme) paid.searchParams.set("theme", theme);
+  if (slug)  paid.searchParams.set("slug", slug);
+  $("afterPayBtn").href = paid.toString();
 
-  if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
-    disableTokenUI("Token service not configured yet. (TOKEN_WEBAPP_URL not set.)");
-    return;
+  // If missing theme/slug, show warning (still allow pay)
+  if (!theme || !slug){
+    showNotice(
+      "Missing theme or slug.\n\nGo back to the theme gallery, enter a slug, then click “Use this theme” again.",
+      "wait"
+    );
   }
 
   $("tokenBtn").addEventListener("click", async ()=>{
     const token = ($("token").value || "").trim();
     if (!token) return showNotice("Enter a token first.", "bad");
 
-    showNotice("Validating token…", "");
+    if (!theme || !slug){
+      return showNotice("Theme and slug are required to redeem a token. Go back and try again.", "bad");
+    }
+
+    if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
+      return showNotice("Token service not configured (TOKEN_WEBAPP_URL not set).", "bad");
+    }
+
+    showNotice("Validating token…", "wait");
 
     try{
       const u = new URL(TOKEN_WEBAPP_URL);
@@ -261,13 +283,11 @@ function main(){
 
       const res = await fetch(u.toString(), { cache:"no-store" });
       const data = await res.json();
-      console.log("TOKEN RESPONSE:", data);
 
       if (!data.ok) throw new Error(data.error || "Token rejected");
 
-      // Server returns a ready-to-go form URL (with keys)
       showNotice("Token accepted! Sending you to the intake form…", "ok");
-      setTimeout(()=>{ location.href = data.formUrl || buildFormUrl(theme, slug); }, 650);
+      setTimeout(()=>{ location.href = data.formUrl; }, 650);
 
     }catch(err){
       showNotice("Token failed: " + (err.message || String(err)), "bad");
