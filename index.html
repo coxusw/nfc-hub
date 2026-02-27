@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tap-Deck</title>
 
-  <link rel="stylesheet" href="/base.css?v=2" />
+  <link rel="stylesheet" href="/base.css?v=3" />
   <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css?v=1" />
 </head>
 
@@ -24,15 +24,17 @@
       </header>
 
       <!-- ================= MAIN LINKS ================= -->
-      <nav class="links" id="linksWrap">
-        <a class="btn btn--grad" id="btnWebsite" href="#" target="_blank">Website</a>
-        <a class="btn btn--grad" id="btnFacebook" href="#" target="_blank">Facebook</a>
-        <a class="btn btn--grad" id="btnInstagram" href="#" target="_blank">Instagram</a>
-        <a class="btn btn--grad" id="btnTikTok" href="#" target="_blank">TikTok</a>
-        <a class="btn btn--grad" id="btnLinkedIn" href="#" target="_blank">LinkedIn</a>
-        <a class="btn btn--grad" id="btnPayPal" href="#" target="_blank">PayPal</a>
-        <a class="btn btn--grad" id="btnCashApp" href="#" target="_blank">Cash App</a>
-        <a class="btn btn--grad" id="btnVenmo" href="#" target="_blank">Venmo</a>
+      <nav class="links" id="linksWrap" aria-label="Links">
+        <a class="btn btn--grad" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+        <a class="btn btn--grad" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="btn btn--grad" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+        <a class="btn btn--grad" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+
+        <a class="btn btn--grad" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn btn--grad" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
+        <a class="btn btn--grad" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
+        <a class="btn btn--grad" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
+
         <a class="btn btn--grad" id="btnVcard" href="#" download>Save Contact</a>
       </nav>
 
@@ -44,16 +46,20 @@
         <div id="about" class="small"></div>
       </section>
 
-      <!-- ================= ACTION BUTTONS (NEW POSITION) ================= -->
-      <div class="actions" id="actionsWrap">
+      <!-- ✅ separator between ABOUT and ACTIONS -->
+      <hr class="sep" id="sepAfterAbout" />
+
+      <!-- ================= ACTION BUTTONS (OWN SECTION) ================= -->
+      <section class="actions-section is-hidden" id="actionsSection" aria-label="Quick actions">
         <div class="actions-inner">
           <a class="action-btn is-hidden" id="btnCall">Call</a>
           <a class="action-btn is-hidden" id="btnText">Text</a>
           <a class="action-btn is-hidden" id="btnEmail">Email</a>
         </div>
-      </div>
+      </section>
 
-      <hr class="sep" />
+      <!-- ✅ separator between ACTIONS and CONTACT -->
+      <hr class="sep" id="sepAfterActions" />
 
       <!-- ================= CONTACT ================= -->
       <section id="contactSection">
@@ -76,7 +82,7 @@
         </div>
       </section>
 
-      <footer style="margin-top:14px;text-align:center;">
+      <footer style="margin-top:14px; text-align:center;">
         <div class="small">
           © <span id="year"></span> <span id="footerBrand">Tap-Deck</span>
         </div>
@@ -89,7 +95,7 @@
 const DEFAULT_THEME = "theme-01-neon-dark.css";
 const DEFAULT_LOGO  = "/assets/logos/crestedcritters.png";
 const BRAND_HOST    = "www.tap-deck.com";
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
@@ -98,29 +104,53 @@ function getParam(name){
 function normalizeUrl(u){
   const x = (u||"").trim();
   if(!x) return "";
-  if(x.startsWith("http")) return x;
+  if(x.startsWith("http://") || x.startsWith("https://")) return x;
   return "https://" + x;
 }
 
 function normalizeTheme(v){
   const s = (v||"").trim();
-  return s.replace(/^\/?themes\//i,"");
+  if(!s) return "";
+  return s.replace(/^\/?themes\//i, "").replace(/^\/+/, "");
 }
 
 function hide(el){ if(el) el.classList.add("is-hidden"); }
 function show(el){ if(el) el.classList.remove("is-hidden"); }
 
-function setBtn(id,url){
-  const el=$(id);
-  if(!url){ hide(el); return; }
+function setBtn(id, url){
+  const el = $(id);
+  if(!el) return;
+
+  const u = (url || "").trim();
+  if(!u || u === "#"){
+    hide(el);
+    el.href = "#";
+    return;
+  }
   show(el);
-  el.href=url;
+  el.href = u;
+}
+
+function applyTheme(themeFile){
+  const theme = normalizeTheme(themeFile || DEFAULT_THEME) || DEFAULT_THEME;
+  const href = ("/themes/" + theme).replace("/themes//","/themes/");
+  $("themeStylesheet").href = href + `?v=${Date.now()}`;
+  return theme;
+}
+
+async function fetchClient(slug){
+  const url = `https://${BRAND_HOST}/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
+  const res = await fetch(url, { cache:"no-store" });
+  if(!res.ok) throw new Error("Profile not found");
+  return await res.json();
 }
 
 function applyLinksLayout(){
-  const wrap=$("linksWrap");
-  const btns=[...wrap.querySelectorAll(".btn")]
-    .filter(b=>!b.classList.contains("is-hidden"));
+  const wrap = $("linksWrap");
+  if(!wrap) return;
+
+  const btns = Array.from(wrap.querySelectorAll("a.btn"))
+    .filter(a => !a.classList.contains("is-hidden"));
 
   wrap.classList.remove("links--grid");
   btns.forEach(b=>{
@@ -128,105 +158,137 @@ function applyLinksLayout(){
     b.classList.remove("btn--small");
   });
 
-  if(btns.length>=5){
-    btns.forEach(b=>b.classList.add("btn--small"));
+  if(btns.length >= 5){
+    btns.forEach(b => b.classList.add("btn--small"));
   }
 
-  if(btns.length>=4){
+  if(btns.length >= 4){
     wrap.classList.add("links--grid");
-    if(btns.length%2===1){
-      btns[btns.length-1].classList.add("btn--last-full");
+    if(btns.length % 2 === 1){
+      btns[btns.length - 1].classList.add("btn--last-full");
     }
   }
 }
 
-async function fetchClient(slug){
-  const url=`https://${BRAND_HOST}/data/clients/${slug}.json?v=${Date.now()}`;
-  const res=await fetch(url,{cache:"no-store"});
-  if(!res.ok) throw new Error("Profile not found");
-  return await res.json();
-}
-
 async function main(){
-  $("year").textContent=new Date().getFullYear();
-  const slug=(location.pathname.replace(/^\/+|\/+$/g,"")||getParam("client")||"").toLowerCase();
+  $("year").textContent = new Date().getFullYear();
+
+  // Path-based slug: /slug  OR query-based: ?client=slug
+  const pathSlug = location.pathname.replace(/^\/+|\/+$/g, "");
+  const slug = (pathSlug || getParam("client") || "").trim().toLowerCase();
+
   if(!slug){
-    $("brand").textContent="No profile selected";
+    $("brand").textContent = "No profile selected";
     hide($("linksWrap"));
     hide($("aboutSection"));
-    hide($("actionsWrap"));
+    hide($("sepAfterAbout"));
+    hide($("actionsSection"));
+    hide($("sepAfterActions"));
     hide($("contactSection"));
     return;
   }
 
-  const client=await fetchClient(slug);
+  const client = await fetchClient(slug);
 
-  $("brand").textContent=client.businessName||slug;
-  $("footerBrand").textContent=client.businessName||"Tap-Deck";
-  $("tagline").textContent=client.tagline||"";
+  document.title = client.businessName ? client.businessName : `Tap-Deck — ${slug}`;
+  $("brand").textContent = client.businessName || slug;
+  $("footerBrand").textContent = client.businessName || "Tap-Deck";
+  $("tagline").textContent = client.tagline || "";
 
-  $("themeStylesheet").href="/themes/"+normalizeTheme(client.theme||DEFAULT_THEME);
+  // Theme + Logo
+  applyTheme(client.theme || DEFAULT_THEME);
+  $("logoImg").src = client.logoPath || DEFAULT_LOGO;
+  $("logoImg").onerror = () => { $("logoImg").onerror = null; $("logoImg").src = DEFAULT_LOGO; };
+  $("logoLink").href = normalizeUrl(client.links?.website || "") || "#";
 
-  $("logoImg").src=client.logoPath||DEFAULT_LOGO;
-  $("logoLink").href=normalizeUrl(client.links?.website)||"#";
-
-  // ABOUT
-  if(client.about){
-    $("about").textContent=client.about;
+  // About
+  const about = (client.about || "").trim();
+  if(about){
+    $("about").textContent = about;
     show($("aboutSection"));
+    show($("sepAfterAbout"));
   }else{
     hide($("aboutSection"));
+    hide($("sepAfterAbout"));
   }
 
-  // LINKS
-  const links=client.links||{};
-  setBtn("btnWebsite",normalizeUrl(links.website));
-  setBtn("btnFacebook",normalizeUrl(links.facebook));
+  // Links
+  const links = client.links || {};
+  setBtn("btnWebsite",  normalizeUrl(links.website));
+  setBtn("btnFacebook", normalizeUrl(links.facebook));
   setBtn("btnInstagram",normalizeUrl(links.instagram));
-  setBtn("btnTikTok",normalizeUrl(links.tiktok));
-  setBtn("btnLinkedIn",normalizeUrl(links.linkedin));
-  setBtn("btnPayPal",normalizeUrl(links.paypal));
-  setBtn("btnCashApp",normalizeUrl(links.cashapp));
-  setBtn("btnVenmo",normalizeUrl(links.venmo));
+  setBtn("btnTikTok",   normalizeUrl(links.tiktok));
+  setBtn("btnLinkedIn", normalizeUrl(links.linkedin));
+  setBtn("btnPayPal",   normalizeUrl(links.paypal));
+  setBtn("btnCashApp",  normalizeUrl(links.cashapp));
+  setBtn("btnVenmo",    normalizeUrl(links.venmo));
 
-  // ACTIONS (below about)
-  const phone=client.contact?.phoneE164||"";
-  const email=client.contact?.email||"";
+  // Contact basic
+  $("contactName").textContent = client.contact?.name || client.businessName || "";
+
+  const phone = (client.contact?.phoneE164 || "").trim();
+  const phoneDisplay = (client.contact?.phoneDisplay || "").trim();
+  if(phone){
+    $("contactPhone").textContent = phoneDisplay || phone;
+    $("contactPhone").href = `tel:${phone}`;
+    show($("rowPhone"));
+  }else{
+    hide($("rowPhone"));
+  }
+
+  const email = (client.contact?.email || "").trim();
+  if(email){
+    $("contactEmail").textContent = email;
+    $("contactEmail").href = `mailto:${email}`;
+    show($("rowEmail"));
+  }else{
+    hide($("rowEmail"));
+  }
+
+  // ✅ Actions (own section)
+  // Show section only if at least one action exists.
+  let anyAction = false;
 
   if(phone){
-    $("btnCall").href="tel:"+phone;
-    $("btnText").href="sms:"+phone;
+    $("btnCall").href = `tel:${phone}`;
+    $("btnText").href = `sms:${phone}`;
     show($("btnCall"));
     show($("btnText"));
+    anyAction = true;
+  }else{
+    hide($("btnCall"));
+    hide($("btnText"));
   }
 
   if(email){
-    $("btnEmail").href="mailto:"+email;
+    $("btnEmail").href = `mailto:${email}`;
     show($("btnEmail"));
+    anyAction = true;
+  }else{
+    hide($("btnEmail"));
   }
 
-  if(!phone && !email){
-    hide($("actionsWrap"));
+  if(anyAction){
+    show($("actionsSection"));
+    show($("sepAfterActions"));
+  }else{
+    hide($("actionsSection"));
+    hide($("sepAfterActions"));
   }
 
-  // CONTACT
-  $("contactName").textContent=client.contact?.name||"";
-  if(phone){
-    $("contactPhone").textContent=client.contact?.phoneDisplay||phone;
-    $("contactPhone").href="tel:"+phone;
-    show($("rowPhone"));
-  }
-  if(email){
-    $("contactEmail").textContent=email;
-    $("contactEmail").href="mailto:"+email;
-    show($("rowEmail"));
-  }
-
+  // Layout tweaks after hiding blanks
   applyLinksLayout();
 }
 
-main().catch(()=>{
-  $("brand").textContent="Profile not found";
+main().catch(err=>{
+  console.error(err);
+  $("brand").textContent = "Profile not found";
+  hide($("linksWrap"));
+  hide($("aboutSection"));
+  hide($("sepAfterAbout"));
+  hide($("actionsSection"));
+  hide($("sepAfterActions"));
+  hide($("contactSection"));
 });
 </script>
 </body>
