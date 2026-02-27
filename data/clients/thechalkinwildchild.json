@@ -8,9 +8,10 @@
     "facebook": "https://www.facebook.com/share/182fZkYkfX/",
     "instagram": "",
     "tiktok": "https://www.tiktok.com/@thechalkinwildchild?_r=1&_t=ZP-94FFuCJbmYR",
+    "linkedin": "",
+    "paypal": "",
     "cashapp": "https://cash.app/$thechalkinwildchild",
-    "venmo": "https://venmo.com/code?user_id=2983921943838720800&created=1772114497",
-    "paypal": ""
+    "venmo": "https://venmo.com/code?user_id=2983921943838720800&created=1772114497"
   },
   "contact": {
     "name": "Samantha Morales",
@@ -19,6 +20,6 @@
     "email": "thechalkinwildchild@gmail.com"
   },
   "theme": "luxury-emerald-estate.css",
-  "logoPath": "/assets/logos/thechalkinwildchild.jpg",
-  "vcardPath": "/vcards/thechalkinwildchild.vcf"
+  "vcardPath": "/vcards/thechalkinwildchild.vcf",
+  "logoPath": "/assets/logos/thechalkinwildchild.webp"
 }
