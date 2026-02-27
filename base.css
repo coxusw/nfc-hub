@@ -1,242 +1,215 @@
 /* =========================================================
-   TAP-DECK Base Styles (always loaded)
-   - Centers everything
-   - Consistent logo size + centered
-   - ✅ Theme variable aliasing so ALL theme packs work
-========================================================= */
+   Tap-Deck — base.css
+   Shared layout + responsive defaults used by all themes.
+   ========================================================= */
 
 :root{
-  /* -------------------------------------------------------
-     DEFAULTS (used if a theme doesn't define anything)
-     ------------------------------------------------------- */
-  --bg1:#050816;
-  --bg2:#0b1020;
-  --bg3:#050816;
+  --wrap: 860px;
+  --pad: 18px;
 
-  --spot1: rgba(6,182,212,.18);
-  --spot2: rgba(167,139,250,.14);
-  --spot3: rgba(34,197,94,.10);
-
+  --bg: #070a16;
   --card: rgba(255,255,255,.06);
   --border: rgba(255,255,255,.12);
-  --shadow: 0 18px 60px rgba(0,0,0,.35);
-
   --text: #eef2ff;
-  --muted: #b6c2ff;
+  --muted: rgba(238,242,255,.72);
 
   --btn-bg: rgba(255,255,255,.10);
   --btn-border: rgba(255,255,255,.16);
-  --btn-text: var(--text);
+  --btn-text: #eef2ff;
 
-  --vcard-bg: rgba(255,255,255,.10);
-
-  --contact-bg: rgba(0,0,0,.20);
-
-  --pill-bg: rgba(255,255,255,.10);
-  --pill-border: rgba(255,255,255,.16);
-  --pill-text: var(--text);
-
-  /* Radii */
-  --radius-card: 22px;
-  --radius-btn: 14px;
-  --radius-row: 14px;
-  --radius-logo: 999px;
-
-  /* -------------------------------------------------------
-     ✅ ALIASES: map “theme pack” variables → base variables
-     This makes your theme packs actually apply.
-     ------------------------------------------------------- */
-
-  /* Backgrounds */
-  --bg1: var(--bg-1, var(--bg1));
-  --bg2: var(--bg-2, var(--bg2));
-  --bg3: var(--bg-3, var(--bg3));
-
-  --spot1: var(--bg-spot-1, var(--spot1));
-  --spot2: var(--bg-spot-2, var(--spot2));
-  --spot3: var(--bg-spot-3, var(--spot3));
-
-  /* Card / borders */
-  --card:   var(--card, var(--card));
-  --border: var(--border, var(--border));
-  --shadow: var(--shadow, var(--shadow));
-
-  /* Text */
-  --text:  var(--text-main, var(--text));
-  --muted: var(--text-muted, var(--muted));
-
-  /* Buttons */
-  --btn-bg:     var(--btn-bg, var(--btn-bg));
-  --btn-border: var(--btn-border, var(--btn-border));
-  --btn-text:   var(--btn-text, var(--btn-text));
-  --vcard-bg:   var(--vcard-bg, var(--vcard-bg));
-
-  /* Contact rows / links */
-  --contact-bg: var(--contact-bg, var(--contact-bg));
-  --link-color: var(--link-color, var(--muted));
-
-  /* Pills */
-  --pill-bg:     var(--pill-bg, var(--pill-bg));
-  --pill-border: var(--pill-border, var(--pill-border));
-  --pill-text:   var(--pill-text, var(--pill-text));
-
-  /* Radii overrides if theme defines them */
-  --radius-card: var(--radius-card, 22px);
-  --radius-btn:  var(--radius-btn, 14px);
-  --radius-row:  var(--radius-row, 14px);
-  --radius-logo: var(--radius-logo, 999px);
+  --shadow: 0 18px 60px rgba(0,0,0,.28);
 }
 
 *{ box-sizing:border-box; }
 
-body{
+html,body{
   margin:0;
-  min-height:100vh;
-  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(circle at 20% 20%, var(--spot1) 0%, transparent 45%),
-    radial-gradient(circle at 80% 30%, var(--spot2) 0%, transparent 45%),
-    radial-gradient(circle at 45% 85%, var(--spot3) 0%, transparent 55%),
-    linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));
+  padding:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
 }
 
-/* Center the whole card */
+a{ color: inherit; }
+
 .wrap{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px 16px;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: 22px 16px 40px;
 }
 
-/* Card sizing */
 .card{
-  width:min(520px, 100%);
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--radius-card);
-  box-shadow:var(--shadow);
-  overflow:hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: var(--pad);
 }
 
-/* Header */
-.hero{
-  padding:18px 18px 10px;
-  text-align:center;
+.header{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:10px;
+  text-align:center;
+  gap: 10px;
+  margin-bottom: 14px;
 }
-
-.logo-link{ display:inline-block; }
 
 .logo{
-  width:110px;
-  height:110px;
-  border-radius:var(--radius-logo);
-  object-fit:cover;
-  display:block;
-  margin:0 auto;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.25);
+  width: 92px;
+  height: 92px;
+  border-radius: 18px;
+  object-fit: contain;
+  background: rgba(0,0,0,.20);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 8px;
 }
 
-/* Headings */
-.titleblock{ text-align:center; }
 .brand{
-  margin:0;
-  font-family:Fraunces, serif;
-  font-weight:600;
-  font-size:26px;
-}
-.tagline{
-  margin:6px 0 0;
-  color:var(--muted);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 0;
 }
 
-/* Buttons */
+.tagline{
+  margin: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+hr.sep{
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.12);
+  margin: 14px 0;
+}
+
+.section-title{
+  font-weight: 900;
+  letter-spacing: .06em;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   Buttons / Link tiles
+   ========================================================= */
+
 .links{
-  padding:10px 18px 0;
-  display:grid;
-  gap:10px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .btn{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:11px 12px;
-  border-radius:var(--radius-btn);
+  text-align:center;
   text-decoration:none;
-  font-weight:800;
-  color:var(--btn-text);
-  background:var(--btn-bg);
-  border:1px solid var(--btn-border);
+
+  padding: 12px 14px;
+  border-radius: 14px;
+
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+
+  font-weight: 900;
+  user-select:none;
 }
 
-.btn.vcard{
-  background: var(--vcard-bg);
+/* Smaller buttons when there are many */
+.btn.btn--small{
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
 }
 
-/* Sections */
-.section{
-  padding:14px 18px;
+/* 2-column grid mode (enabled by JS) */
+.links.links--grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
-.section h2{
-  margin:0 0 10px;
-  font-size:14px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--muted);
-}
-.section p{ margin:0; }
 
-/* Contact grid */
+/* If odd number of visible buttons, last one spans full width */
+.btn.btn--last-full{
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 100%;
+}
+
+/* Make “last full” feel a bit stronger (optional) */
+.links.links--grid .btn.btn--last-full{
+  padding: 12px 14px;
+  font-size: 15px;
+}
+
+/* Hide helper */
+.is-hidden{
+  display:none !important;
+}
+
+/* Contact rows */
 .contact-grid{
   display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
-.contact-item{
-  padding:10px 12px;
-  border-radius:var(--radius-row);
-  background:var(--contact-bg);
-  border:1px solid var(--border);
-}
-.label{ font-size:12px; color:var(--muted); }
-.value{ margin-top:4px; font-weight:700; }
-.value a{ color:var(--link-color); text-decoration:none; }
-.value a:hover{ text-decoration:underline; }
 
-/* Quick actions centered */
-.quick-actions{
-  margin-top:12px;
+.contact-row{
   display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:center;
 }
 
 .pill{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width:90px;
-  padding:10px 12px;
-  border-radius:999px;
-  text-decoration:none;
-  color:var(--pill-text);
-  background:var(--pill-bg);
-  border:1px solid var(--pill-border);
-  font-weight:800;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
 }
 
-/* Footer */
-.footer{
-  padding:14px 18px 18px;
-  text-align:center;
-  color:var(--muted);
-  font-size:12px;
+.small{
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Embed mode used by theme-gallery previews */
+body.embed .wrap{
+  padding: 10px 10px 12px;
+}
+
+body.embed .card{
+  border-radius: 16px;
+  padding: 12px;
+}
+
+body.embed .small,
+body.embed .contact-grid,
+body.embed hr.sep,
+body.embed footer{
+  display:none !important;
+}
+
+/* Responsive */
+@media (max-width: 520px){
+  .links.links--grid{
+    grid-template-columns: 1fr;
+  }
+  .btn.btn--last-full{
+    grid-column: auto;
+  }
 }
