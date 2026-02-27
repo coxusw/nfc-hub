@@ -6,6 +6,9 @@
   NOTE:
   This page does NOT verify Square payment.
   It simply routes to your Google Form with theme+slug prefilled.
+
+  ✅ EDIT:
+  GOOGLE_FORM_URL + keys must match your form.
 ========================================================= -->
 <html lang="en">
 <head>
@@ -18,6 +21,8 @@
       --card:rgba(255,255,255,.06);
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
+      --btn:rgba(255,255,255,.10);
+      --btnb:rgba(255,255,255,.16);
     }
     *{box-sizing:border-box}
     body{
@@ -46,13 +51,21 @@
       display:flex; justify-content:center; align-items:center;
       padding:12px 14px;
       border-radius:14px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.10);
+      border:1px solid var(--btnb);
+      background:var(--btn);
       color:var(--text);
       font-weight:900;
       text-decoration:none;
       cursor:pointer;
     }
+    .box{
+      margin-top:14px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
       padding:8px 12px; border-radius:999px;
@@ -60,56 +73,51 @@
       background:rgba(255,255,255,.08);
       color:var(--text);
       font-weight:800;
-      margin-left:8px;
-      max-width:100%;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-    .row{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; flex-wrap:wrap;
-      margin-top:12px;
+      text-decoration:none;
+      user-select:none;
     }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
-    .small{font-size:12px; color:var(--muted)}
+    .small{font-size:12px; color:var(--muted); line-height:1.4}
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <h1>Continue setup</h1>
-      <p class="sub">
-        Next step: fill out your details and your Tap-Deck profile will go live.
-      </p>
+      <p class="sub">Next step: fill out your details and your profile will go live.</p>
 
-      <div class="row">
-        <div class="small">Theme:</div>
-        <span class="pill" id="themePill">—</span>
-      </div>
-      <div class="row">
-        <div class="small">Slug:</div>
-        <span class="pill" id="slugPill">—</span>
+      <div class="box">
+        <div class="row">
+          <div class="small">Selected theme:</div>
+          <span class="pill" id="themePill">—</span>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <div class="small">Desired slug:</div>
+          <span class="pill" id="slugPill">—</span>
+        </div>
+        <div class="small" style="margin-top:10px;">
+          Your profile will be:
+          <code id="linkPreview">https://www.tap-deck.com/your-slug</code>
+        </div>
       </div>
 
-      <div style="margin-top:16px;">
+      <div style="margin-top:14px;">
         <a class="btn" id="continueBtn" href="#">Continue to intake form</a>
-      </div>
-
-      <div class="small" style="margin-top:10px;">
-        If you get stuck, return to the theme gallery and try again.
+        <div class="small" style="margin-top:10px;">
+          If something looks wrong, return to the theme gallery and try again.
+        </div>
       </div>
     </section>
   </main>
 
 <script>
-/* =========================================================
-   ✅ EDIT THESE (already set for you)
-========================================================= */
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
-const THEME_QUERY_KEY = "entry.2114451287";
-const SLUG_QUERY_KEY  = "entry.1052989883";
-/* ========================================================= */
+/* ✅ EDIT THESE */
+const GOOGLE_FORM_URL  = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
+const THEME_QUERY_KEY  = "entry.2114451287";
+const SLUG_QUERY_KEY   = "entry.1052989883";
+
+/* Live site host for link preview */
+const BRAND_HOST = "www.tap-deck.com";
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
@@ -136,6 +144,8 @@ const slug  = slugify(getParam("slug") || "");
 
 document.getElementById("themePill").textContent = theme || "Not set";
 document.getElementById("slugPill").textContent  = slug  || "Not set";
+document.getElementById("linkPreview").textContent = `https://${BRAND_HOST}/${slug || "your-slug"}`;
+
 document.getElementById("continueBtn").href = buildFormUrl(theme, slug);
 </script>
 </body>
