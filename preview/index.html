@@ -1,201 +1,104 @@
-<!doctype html>
-<!-- =========================================================
-  Tap-Deck — Theme Preview
-  File: /preview/index.html
-========================================================= -->
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tap-Deck Preview</title>
-
-  <link rel="stylesheet" href="/base.css">
-  <link id="themeStylesheet" rel="stylesheet" href="">
-  <link rel="icon" href="/logo.jpg" />
-
-  <style>
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:10;
-      backdrop-filter:blur(12px);
-      background:rgba(0,0,0,.25);
-      border-bottom:1px solid rgba(255,255,255,.1);
-      padding:8px 12px;
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-    .embed .topbar{ display:none; }
-    .embed .wrap{ padding-top:14px; }
-  </style>
-</head>
-
-<body>
-  <div class="topbar">
-    <div>Preview Mode</div>
-    <div id="themeLabel"></div>
-  </div>
-
-  <main class="wrap">
-    <section class="card">
-
-      <header class="hero" id="heroBlock">
-        <a class="logo-link" id="logoLink" href="#" target="_blank">
-          <img class="logo" id="logoImg" src="/logo.jpg" alt="Logo">
-        </a>
-
-        <div class="titleblock">
-          <h1 class="brand" id="brand">Tap-Deck Preview</h1>
-          <p class="tagline" id="tagline"></p>
-        </div>
-      </header>
-
-      <nav class="links" id="linksBlock">
-        <a class="btn" id="btnWebsite" target="_blank">Website</a>
-        <a class="btn" id="btnFacebook" target="_blank">Facebook</a>
-        <a class="btn" id="btnInstagram" target="_blank">Instagram</a>
-        <a class="btn" id="btnTikTok" target="_blank">TikTok</a>
-        <a class="btn" id="btnLinkedIn" target="_blank">LinkedIn</a>
-        <a class="btn" id="btnPayPal" target="_blank">PayPal</a>
-        <a class="btn" id="btnCashApp" target="_blank">Cash App</a>
-        <a class="btn" id="btnVenmo" target="_blank">Venmo</a>
-      </nav>
-
-      <section class="section" id="aboutBlock">
-        <h2>About</h2>
-        <p id="about"></p>
-      </section>
-
-      <section class="section" id="contactBlock">
-        <h2>Contact</h2>
-        <div id="contactInfo"></div>
-      </section>
-
-      <footer class="footer">
-        © <span id="year"></span> <span id="footerBrand"></span>
-      </footer>
-
-    </section>
-  </main>
-
 <script>
+const DEFAULT_THEME = "theme-01-neon-dark.css";
+const DEFAULT_LOGO = "/logo.jpg";
+
+const GOOGLE_FORM_PREFILL_URL = ""; // optional
+const THEME_QUERY_KEY = "";
+
 const $ = (id)=>document.getElementById(id);
 
-function param(name){
+function normalizeUrl(u){
+  const x = (u||"").trim();
+  if(!x) return "";
+  if(x.startsWith("http://") || x.startsWith("https://")) return x;
+  return "https://" + x;
+}
+
+function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function normalizeUrl(u){
-  if(!u) return "";
-  if(u.startsWith("http://") || u.startsWith("https://")) return u;
-  return "https://" + u;
+function applyTheme(themeFile){
+  const theme = (themeFile || DEFAULT_THEME).trim();
+  $("themeName").textContent = theme;
+  const href = `/themes/${theme}`.replace("/themes//","/themes/");
+  document.getElementById("themeStylesheet").href = href + `?v=${Date.now()}`;
+  return theme;
 }
 
-function normalizeHandle(value, type){
-  if(!value) return "";
-
-  if(value.startsWith("http")) return value;
-
-  if(type === "instagram"){
-    return value.startsWith("@")
-      ? "https://instagram.com/" + value.slice(1)
-      : "https://instagram.com/" + value;
-  }
-
-  if(type === "venmo"){
-    return value.startsWith("@")
-      ? "https://venmo.com/" + value.slice(1)
-      : "https://venmo.com/" + value;
-  }
-
-  if(type === "cashapp"){
-    const cashtag = value.startsWith("$") ? value : "$"+value;
-    return "https://cash.app/" + cashtag;
-  }
-
-  return normalizeUrl(value);
+function setLogo(src){
+  const img = $("logoImg");
+  img.src = src || DEFAULT_LOGO;
+  img.onerror = ()=>{ img.onerror=null; img.src = DEFAULT_LOGO; };
 }
 
-function setLink(id, url){
-  const el = $(id);
-  if(!url){
-    el.style.display="none";
-    return false;
-  }
-  el.href = url;
-  el.style.display="";
-  return true;
-}
-
-function init(){
-  const theme = param("theme") || "theme-01-neon-dark.css";
-  $("themeStylesheet").href = "/themes/" + theme;
-  $("themeLabel").textContent = theme;
-
-  if(param("embed") === "1"){
-    document.body.classList.add("embed");
-  }
-
-  const businessName = param("businessName") || "Tap-Deck Preview";
-  const tagline = param("tagline");
-  const about = param("about");
-
-  const website   = normalizeUrl(param("website"));
-  const facebook  = normalizeUrl(param("facebook"));
-  const instagram = normalizeHandle(param("instagram"), "instagram");
-  const tiktok    = normalizeUrl(param("tiktok"));
-  const linkedin  = normalizeUrl(param("linkedin"));
-  const paypal    = normalizeUrl(param("paypal"));
-  const cashapp   = normalizeHandle(param("cashapp"), "cashapp");
-  const venmo     = normalizeHandle(param("venmo"), "venmo");
-
-  const name  = param("name");
-  const phone = param("phone");
-  const email = param("email");
-
-  $("brand").textContent = businessName;
-  $("footerBrand").textContent = businessName;
+function main(){
+  if (getParam("embed") === "1") document.body.classList.add("embed");
   $("year").textContent = new Date().getFullYear();
 
-  if(tagline){
-    $("tagline").textContent = tagline;
-  } else {
-    $("tagline").style.display="none";
-  }
+  const theme = applyTheme(getParam("theme") || DEFAULT_THEME);
 
-  if(about){
-    $("about").textContent = about;
-  } else {
-    $("aboutBlock").style.display="none";
-  }
+  // ✅ logo override for gallery previews
+  const logo = (getParam("logo") || "").trim();
+  setLogo(logo || DEFAULT_LOGO);
 
-  const hasLinks =
-    setLink("btnWebsite", website) ||
-    setLink("btnFacebook", facebook) ||
-    setLink("btnInstagram", instagram) ||
-    setLink("btnTikTok", tiktok) ||
-    setLink("btnLinkedIn", linkedin) ||
-    setLink("btnPayPal", paypal) ||
-    setLink("btnCashApp", cashapp) ||
-    setLink("btnVenmo", venmo);
+  const businessName = getParam("businessName") || "Your Business Name";
+  const tagline = getParam("tagline") || "";
+  const about = getParam("about") || "";
 
-  if(!hasLinks){
-    $("linksBlock").style.display="none";
-  }
+  const website = normalizeUrl(getParam("website"));
+  const facebook = normalizeUrl(getParam("facebook"));
+  const instagram = normalizeUrl(getParam("instagram"));
+  const tiktok = normalizeUrl(getParam("tiktok"));
 
-  if(name || phone || email){
-    const c = $("contactInfo");
-    if(name)  c.innerHTML += `<div>${name}</div>`;
-    if(phone) c.innerHTML += `<div><a href="tel:${phone}">${phone}</a></div>`;
-    if(email) c.innerHTML += `<div><a href="mailto:${email}">${email}</a></div>`;
-  } else {
-    $("contactBlock").style.display="none";
+  const name = getParam("name") || "Your Name";
+  const phone = (getParam("phone") || "").trim();
+  const email = (getParam("email") || "").trim();
+
+  document.title = `Preview — ${businessName}`;
+  $("brand").textContent = businessName;
+  $("footerBrand").textContent = businessName;
+  $("tagline").textContent = tagline;
+  $("about").textContent = about;
+
+  $("btnWebsite").href = website || "#";
+  $("btnFacebook").href = facebook || "#";
+  $("btnTikTok").href = tiktok || "#";
+  $("logoLink").href = website || "#";
+
+  $("contactName").textContent = name;
+  $("contactPhone").href = phone ? `tel:${phone}` : "#";
+  $("contactPhone").textContent = phone || "";
+  $("contactEmail").href = email ? `mailto:${email}` : "#";
+  $("contactEmail").textContent = email || "";
+
+  $("pillCall").href = phone ? `tel:${phone}` : "#";
+  $("pillText").href = phone ? `sms:${phone}` : "#";
+  $("pillEmail").href = email ? `mailto:${email}` : "#";
+
+  $("btnVcard").href = "#";
+  $("btnVcard").addEventListener("click", (e)=>{
+    e.preventDefault();
+    alert("This is only a preview. vCard will work on the final card.");
+  });
+
+  $("btnCopy").addEventListener("click", async ()=>{
+    try{
+      await navigator.clipboard.writeText(theme);
+      $("btnCopy").textContent = "Copied!";
+      setTimeout(()=>$("btnCopy").textContent="Copy theme name", 1200);
+    }catch{
+      alert("Theme: " + theme);
+    }
+  });
+
+  if(GOOGLE_FORM_PREFILL_URL && GOOGLE_FORM_PREFILL_URL.trim() !== ""){
+    const u = new URL(GOOGLE_FORM_PREFILL_URL);
+    u.searchParams.set(THEME_QUERY_KEY, theme);
+    $("btnForm").href = u.toString();
+    $("btnForm").style.display = "";
   }
 }
 
-init();
+main();
 </script>
-</body>
-</html>
