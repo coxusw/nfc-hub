@@ -1,216 +1,275 @@
 /* =========================================================
-   Tap-Deck base.css (shared layout)
-   IMPORTANT: This file should NOT override theme colors.
-   Themes should control background, button gradients, etc.
+  Tap-Deck — base.css (layout + shared components)
+  This file controls STRUCTURE so themes don't break layouts.
+  Themes should ideally only override CSS variables.
+
+  Key goals:
+  - Stable card layout
+  - Buttons not full-card width (centered max width)
+  - Links can be 2x2 grid; odd last spans full width
+  - Action pills (Call/Text/Email) follow theme variables
 ========================================================= */
 
 :root{
-  --maxw: 720px;
+  /* page */
+  --pageBg1:#050816;
+  --pageBg2:#0b1020;
 
-  /* Neutral defaults (themes can override these variables) */
+  /* card */
+  --cardBg: rgba(255,255,255,.06);
+  --cardBorder: rgba(255,255,255,.12);
+  --cardShadow: 0 18px 60px rgba(0,0,0,.25);
+
+  /* text */
   --text: #eef2ff;
   --muted: rgba(238,242,255,.78);
 
-  --card-bg: rgba(0,0,0,.28);
-  --card-border: rgba(255,255,255,.14);
-
+  /* separators */
   --sep: rgba(255,255,255,.12);
 
-  /* Buttons: keep subtle so theme CSS still “wins” visually */
-  --btn-bg: rgba(255,255,255,.08);
-  --btn-border: rgba(255,255,255,.16);
-  --btn-text: var(--text);
+  /* controls + buttons (themes can override these) */
+  --btnText: var(--text);
+  --btnBorder: rgba(255,255,255,.16);
+  --btnBg: rgba(255,255,255,.10);
 
-  --pill-bg: rgba(255,255,255,.08);
-  --pill-border: rgba(255,255,255,.16);
+  /* gradient button look (themes can override) */
+  --btnGradA: rgba(34,197,94,.35);
+  --btnGradB: rgba(6,182,212,.25);
 
-  /* Button sizing target (your “cursor width” preference) */
-  --btn-max: 280px;
+  /* action pills */
+  --pillBg: rgba(255,255,255,.10);
+  --pillBorder: rgba(255,255,255,.16);
+
+  /* sizing */
+  --cardRadius: 18px;
+  --btnRadius: 14px;
+  --btnPadY: 12px;
+  --btnPadX: 14px;
+
+  /* IMPORTANT: controls the “tightness” you want */
+  --linksMaxWidth: 560px;     /* <- tighten overall button block */
+  --linksGap: 12px;
 }
 
-/* Base reset */
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
+*{ box-sizing: border-box; }
+
+html, body{
+  height: 100%;
+}
+
 body{
-  margin:0;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
   color: var(--text);
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(6,182,212,.18) 0%, transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
+    linear-gradient(180deg, var(--pageBg1), var(--pageBg2), var(--pageBg1));
 }
 
-/* Embedded mode (theme-gallery thumbnails) */
-body.embed .wrap{
-  padding: 10px;
-}
-body.embed .card{
-  border-radius: 14px;
-  padding: 12px;
-}
-
-/* Layout shell */
 .wrap{
-  width: min(var(--maxw), 100%);
+  width: min(860px, 100%);
   margin: 0 auto;
-  padding: 22px 14px 28px;
+  padding: 26px 14px 40px;
+  display: flex;
+  justify-content: center;
 }
 
 .card{
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 22px;
+  width: min(760px, 100%);
+  background: var(--cardBg);
+  border: 1px solid var(--cardBorder);
+  border-radius: var(--cardRadius);
+  box-shadow: var(--cardShadow);
   padding: 18px;
 }
 
 .header{
-  text-align:center;
-  margin-bottom: 10px;
+  text-align: center;
+  padding-top: 6px;
 }
 
 .logo{
-  width: 92px;
-  height: 92px;
-  object-fit: contain;
-  border-radius: 16px;
-  display:block;
-  margin: 0 auto 10px;
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.20);
 }
 
 .brand{
-  margin: 0;
-  font-size: 28px;
-  line-height: 1.15;
+  margin: 12px 0 0;
+  font-weight: 900;
+  font-size: 30px;
+  letter-spacing: .2px;
 }
 
 .tagline{
-  margin: 8px 0 0 0;
+  margin: 8px 0 0;
   color: var(--muted);
+  font-weight: 600;
 }
 
-/* Quick actions (Call / Text / Email) */
-.quick{
-  display:flex;
-  gap: 10px;
-  justify-content:center;
-  flex-wrap:wrap;
-  margin: 14px 0 6px;
-}
+/* hide helper */
+.is-hidden{ display: none !important; }
 
-.pill-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--pill-border);
-  background: var(--pill-bg);
-  color: var(--btn-text);
-  text-decoration:none;
-  font-weight: 800;
-  min-width: 110px;
-}
-
-/* Link buttons */
-.links{
-  margin-top: 12px;
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap: 14px;
-}
-
-.links a.btn{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-decoration:none;
-  font-weight: 900;
-
-  background: var(--btn-bg);
-  border: 1px solid var(--btn-border);
-  color: var(--btn-text);
-
-  padding: 14px 16px;
-  border-radius: 14px;
-
-  /* Key part: stop full-width stretch */
-  width: 100%;
-  max-width: var(--btn-max);
-}
-
-/* Smaller variant used when there are many buttons */
-.links a.btn.btn--small{
-  padding: 12px 14px;
-  font-size: 14px;
-}
-
-/* 2-column grid mode (enabled by JS) */
-.links.links--grid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, var(--btn-max)));
-  justify-content:center;
-  gap: 14px;
-}
-
-/* When odd count, last button centered */
-.links.links--grid a.btn.btn--last-full{
-  grid-column: 1 / -1;
-  justify-self:center;
-}
-
-/* Separators + sections */
 .sep{
-  border:0;
-  height:1px;
-  background: var(--sep);
+  border: 0;
+  border-top: 1px solid var(--sep);
   margin: 16px 0;
 }
 
 .section-title{
   font-weight: 900;
-  letter-spacing: .06em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   font-size: 12px;
-  margin: 0 0 8px;
-  color: var(--muted);
+  color: rgba(238,242,255,.72);
+  margin-bottom: 10px;
 }
 
-.small{ color: var(--muted); }
+.small{
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* =========================================================
+  ACTION PILLS (Call/Text/Email)
+========================================================= */
+
+.actions{
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 6px;
+}
+
+.actions-inner{
+  width: min(var(--linksMaxWidth), 100%);
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn{
+  appearance: none;
+  border: 1px solid var(--pillBorder);
+  background: var(--pillBg);
+  color: var(--btnText);
+  text-decoration: none;
+  font-weight: 900;
+  padding: 9px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  cursor: pointer;
+}
+
+/* =========================================================
+  MAIN LINKS (Website/Facebook/etc)
+========================================================= */
+
+.links{
+  width: min(var(--linksMaxWidth), 100%);
+  margin: 14px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--linksGap);
+  align-items: center;
+}
+
+/* base button */
+.btn{
+  width: 100%;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--btnPadY) var(--btnPadX);
+  border-radius: var(--btnRadius);
+  border: 1px solid var(--btnBorder);
+  background: var(--btnBg);
+  color: var(--btnText);
+  text-decoration: none;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* optional “gradient” look used by many themes */
+.btn--grad{
+  background: linear-gradient(90deg, var(--btnGradA), var(--btnGradB));
+  border-color: rgba(255,255,255,.18);
+}
+
+/* smaller buttons if many */
+.btn--small{
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+/* 2-column grid mode */
+.links.links--grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--linksGap);
+  align-items: stretch;
+}
+
+/* odd last spans full width */
+.btn.btn--last-full{
+  grid-column: 1 / -1;
+  width: 70%;
+  justify-self: center;
+}
+
+/* =========================================================
+  CONTACT GRID
+========================================================= */
 
 .contact-grid{
-  display:grid;
+  display: grid;
   gap: 10px;
 }
 
 .contact-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display: grid;
+  grid-template-columns: 92px 1fr;
   gap: 12px;
+  align-items: center;
   padding: 10px 12px;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
   background: rgba(0,0,0,.16);
+  border-radius: 14px;
 }
 
 .pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 6px 10px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: var(--muted);
+  background: rgba(255,255,255,.08);
+  color: rgba(238,242,255,.86);
+  padding: 7px 10px;
+  border-radius: 999px;
   font-weight: 800;
   font-size: 12px;
 }
 
 .contact-row a{
-  color: var(--text);
+  color: rgba(238,242,255,.92);
   text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
-/* Hide helper used by JS */
-.is-hidden{
-  display:none !important;
+/* =========================================================
+  EMBED mode (used by /preview/?embed=1)
+========================================================= */
+body.embed .wrap{
+  padding: 10px;
+}
+body.embed .card{
+  padding: 14px;
 }
