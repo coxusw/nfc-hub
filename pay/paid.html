@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- =========================================================
-  NFC Hub — Post-Payment Landing
+  Tap-Deck — Post-Payment Landing
   File: /pay/paid.html
 
   NOTE:
@@ -21,7 +21,6 @@
       --card:rgba(255,255,255,.06);
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
-      --warn:rgba(245,158,11,.18);
     }
     *{box-sizing:border-box}
     body{
@@ -57,19 +56,20 @@
       text-decoration:none;
       cursor:pointer;
     }
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    .small{font-size:12px; color:var(--muted)}
     .notice{
-      margin-top:12px;
+      margin-top:10px;
       padding:10px 12px;
       border-radius:12px;
-      border:1px solid var(--border);
-      background:var(--warn);
-      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.20);
+      color:var(--muted);
       display:none;
       white-space:pre-wrap;
       line-height:1.35;
     }
-    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
-    .small{font-size:12px; color:var(--muted)}
+    .notice.show{ display:block; }
   </style>
 </head>
 <body>
@@ -92,8 +92,10 @@
 
 <script>
 /* =========================================================
-   ✅ EDIT THESE
+   ✅ EDIT THESE (match your Google Form)
 ========================================================= */
+const BRAND_HOST = "tap-deck.com";
+
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
@@ -105,12 +107,11 @@ function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
 }
 
-function slugify(s){
-  return String(s || "")
+function slugify(input){
+  return String(input || "")
     .trim()
     .toLowerCase()
-    .replace(/https?:\/\/+/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
@@ -122,20 +123,21 @@ function buildFormUrl(theme, slug){
   return u.toString();
 }
 
-const theme = (getParam("theme") || "").trim();
-const slug  = slugify(getParam("slug") || "");
+(function main(){
+  const theme = (getParam("theme") || "").trim();
+  const slug  = slugify(getParam("slug") || "");
 
-const btn = $("continueBtn");
-btn.href = buildFormUrl(theme, slug);
+  const btn = $("continueBtn");
+  const notice = $("notice");
 
-// Friendly warning if something is missing
-if (!theme || !slug){
-  const n = $("notice");
-  n.style.display = "block";
-  n.textContent =
-    "Missing theme or slug.\n\n" +
-    "Go back to the theme gallery and click “Use this theme” again (and make sure you enter a slug).";
-}
+  btn.href = buildFormUrl(theme, slug);
+
+  if (!theme || !slug){
+    notice.classList.add("show");
+    notice.textContent =
+      "Missing theme or slug.\n\nGo back to https://" + BRAND_HOST + "/theme-gallery/ and try again.";
+  }
+})();
 </script>
 </body>
 </html>
