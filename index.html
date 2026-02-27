@@ -1,181 +1,299 @@
 <!doctype html>
 <!-- =========================================================
-  Tap-Deck — Client Profile
-  File: /index.html
+  Tap-Deck — Single GitHub Pages site (Path-based URLs)
 
-  Loads client profile from:
-  /data/clients/{slug}.json
+  URLs:
+    https://www.tap-deck.com/slug
+    https://www.tap-deck.com/?client=slug
 
-  Slug is derived from:
-  https://tap-deck.com/slug
+  Loads:
+    /data/clients/{slug}.json
 
+  Notes:
+  - Forces canonical host to www.tap-deck.com to avoid apex/www mismatch.
+  - Improved error reporting so "profile not found" shows the real reason.
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tap-Deck Profile</title>
+  <title>Tap-Deck</title>
+  <meta name="description" content="Tap to view contact info and links." />
 
-  <link rel="stylesheet" id="themeStylesheet" href="">
-  <style>
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
-      background:#0b1020;
-      color:#fff;
-      display:flex;
-      justify-content:center;
-      padding:20px;
-    }
-    .wrap{
-      width:min(720px,100%);
-      text-align:center;
-    }
-    .logo{
-      max-width:140px;
-      margin:0 auto 16px;
-    }
-    h1{margin:0 0 6px 0}
-    .tagline{opacity:.85;margin-bottom:12px}
-    .about{opacity:.8;margin-bottom:20px}
-    .buttons{
-      display:grid;
-      grid-template-columns:repeat(2, 1fr);
-      gap:10px;
-    }
-    .btn{
-      padding:10px 12px;
-      border-radius:12px;
-      text-decoration:none;
-      font-weight:700;
-      background:rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.18);
-      color:white;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-    }
-    .btn.full{
-      grid-column:1 / -1;
-    }
-    .hidden{display:none}
-  </style>
+  <link rel="stylesheet" href="/base.css" />
+  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css" />
+  <link rel="icon" href="/logo.jpg" />
 </head>
 
 <body>
-  <main class="wrap" id="app">
-    Loading profile…
+  <main class="wrap">
+    <section class="card">
+
+      <header class="hero">
+        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
+          <img class="logo" id="logoImg" src="/logo.jpg" alt="Logo" />
+        </a>
+
+        <div class="titleblock">
+          <h1 class="brand" id="brand">Loading…</h1>
+          <p class="tagline" id="tagline"></p>
+        </div>
+      </header>
+
+      <nav class="links" aria-label="Primary links" id="linksWrap">
+        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
+        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
+
+        <a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
+        <a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
+        <a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
+
+        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
+      </nav>
+
+      <section class="section" id="aboutSection">
+        <h2>About</h2>
+        <p id="about"></p>
+      </section>
+
+      <section class="section" id="contactSection">
+        <h2>Contact info</h2>
+
+        <div class="contact-grid" id="contactGrid">
+          <div class="contact-item" id="rowName">
+            <div class="label">Name</div>
+            <div class="value" id="contactName"></div>
+          </div>
+
+          <div class="contact-item" id="rowPhone">
+            <div class="label">Phone</div>
+            <div class="value"><a id="contactPhone" href="#"></a></div>
+          </div>
+
+          <div class="contact-item" id="rowEmail">
+            <div class="label">Email</div>
+            <div class="value"><a id="contactEmail" href="#"></a></div>
+          </div>
+        </div>
+
+        <div class="quick-actions" aria-label="Quick actions" id="quickActions">
+          <a class="pill" id="pillCall" href="#">Call</a>
+          <a class="pill" id="pillText" href="#">Text</a>
+          <a class="pill" id="pillEmail" href="#">Email</a>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
+      </footer>
+
+    </section>
   </main>
 
-<script>
-/* =========================================================
-   CONFIG
-========================================================= */
-const BRAND_HOST = "tap-deck.com";
-/* ========================================================= */
+  <script>
+    // =========================================================
+    // Global settings
+    // =========================================================
+    const CANONICAL_HOST = "www.tap-deck.com";
+    const DEFAULT_THEME = "/themes/theme-01-neon-dark.css";
+    const DEFAULT_LOGO = "/logo.jpg";
+    const DATA_PATH = (slug) => `/data/clients/${slug}.json`;
 
-const app = document.getElementById("app");
+    const $ = (id) => document.getElementById(id);
 
-function getSlugFromPath(){
-  const path = window.location.pathname.replace(/^\/+/,"").trim();
-  if (!path) return null;
-  return path.toLowerCase();
-}
+    function normalizeUrl(u){
+      const x = (u || "").trim();
+      if(!x) return "";
+      if(x.startsWith("http://") || x.startsWith("https://")) return x;
+      return "https://" + x;
+    }
 
-function createButton(label, url){
-  if (!url) return null;
-  const a = document.createElement("a");
-  a.href = url;
-  a.className = "btn";
-  a.target = "_blank";
-  a.rel = "noopener";
-  a.textContent = label;
-  return a;
-}
+    function setText(id, text){
+      const el = $(id);
+      if(el) el.textContent = text || "";
+    }
 
-function renderProfile(client){
-  document.title = client.businessName || "Tap-Deck Profile";
+    function setLinkOrHide(id, url){
+      const el = $(id);
+      if(!el) return;
+      const u = normalizeUrl(url);
+      if(!u){
+        el.style.display = "none";
+        el.href = "#";
+        return;
+      }
+      el.style.display = "";
+      el.href = u;
+    }
 
-  // load theme
-  if (client.theme){
-    document.getElementById("themeStylesheet").href =
-      "/themes/" + client.theme;
-  }
+    function hideIfEmpty(sectionId, value){
+      const el = $(sectionId);
+      if(!el) return;
+      el.style.display = (value && String(value).trim()) ? "" : "none";
+    }
 
-  app.innerHTML = "";
+    // =========================================================
+    // Slug from path or query
+    // =========================================================
+    function getSlugFromPathOrQuery() {
+      const params = new URLSearchParams(location.search);
+      const qClient = (params.get("client") || "").trim().toLowerCase();
+      if (qClient) return qClient;
 
-  // logo
-  if (client.logoPath){
-    const img = document.createElement("img");
-    img.src = client.logoPath;
-    img.className = "logo";
-    app.appendChild(img);
-  }
+      const parts = location.pathname.split("/").filter(Boolean);
+      const first = (parts[0] || "").trim().toLowerCase();
+      if (!first) return "sample";
+      return first;
+    }
 
-  // business
-  const h1 = document.createElement("h1");
-  h1.textContent = client.businessName || "";
-  app.appendChild(h1);
+    // =========================================================
+    // Robust loader with real error output
+    // =========================================================
+    async function loadClient(slug) {
+      const url = DATA_PATH(slug);
 
-  if (client.tagline){
-    const t = document.createElement("div");
-    t.className = "tagline";
-    t.textContent = client.tagline;
-    app.appendChild(t);
-  }
+      // Use text() so we can show parse errors clearly
+      const res = await fetch(url, { cache: "no-store" });
+      const text = await res.text();
 
-  if (client.about){
-    const a = document.createElement("div");
-    a.className = "about";
-    a.textContent = client.about;
-    app.appendChild(a);
-  }
+      if (!res.ok) {
+        throw new Error(`Fetch failed: ${res.status} ${res.statusText} — ${url}`);
+      }
 
-  const grid = document.createElement("div");
-  grid.className = "buttons";
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        const preview = text.slice(0, 180).replace(/\s+/g, " ").trim();
+        throw new Error(`JSON parse failed for ${url}. First bytes: "${preview}"`);
+      }
+    }
 
-  const links = client.links || {};
+    function applyTheme(themeValue){
+      const themeHref = themeValue
+        ? (String(themeValue).startsWith("/") ? String(themeValue) : `/themes/${String(themeValue)}`)
+        : DEFAULT_THEME;
 
-  const buttons = [
-    createButton("Website", links.website),
-    createButton("Facebook", links.facebook),
-    createButton("Instagram", links.instagram),
-    createButton("TikTok", links.tiktok),
-    createButton("LinkedIn", links.linkedin),
-    createButton("PayPal", links.paypal),
-    createButton("Cash App", links.cashapp),
-    createButton("Venmo", links.venmo),
-  ].filter(Boolean);
+      document.getElementById("themeStylesheet").href = `${themeHref}?v=${Date.now()}`;
+    }
 
-  buttons.forEach(btn => grid.appendChild(btn));
+    function applyLogo(logoPath){
+      const img = $("logoImg");
+      img.src = logoPath || DEFAULT_LOGO;
+      img.onerror = ()=>{ img.onerror=null; img.src = DEFAULT_LOGO; };
+    }
 
-  // if odd number, center last
-  if (buttons.length % 2 === 1){
-    buttons[buttons.length - 1].classList.add("full");
-  }
+    function applyClient(c) {
+      applyTheme(c.theme);
 
-  app.appendChild(grid);
-}
+      // Title + footer
+      const title = (c.businessName || c.contact?.name || "Tap-Deck").trim();
+      document.title = title;
+      setText("brand", c.businessName || c.contact?.name || "");
+      setText("footerBrand", c.businessName || c.contact?.name || "");
 
-async function loadProfile(){
-  const slug = getSlugFromPath();
+      // Tagline/About (auto-hide)
+      setText("tagline", c.tagline || "");
+      hideIfEmpty("tagline", c.tagline);
 
-  if (!slug){
-    app.innerHTML = "Profile not found.";
-    return;
-  }
+      setText("about", c.about || "");
+      hideIfEmpty("aboutSection", c.about);
 
-  try{
-    const res = await fetch(`/data/clients/${slug}.json`, { cache:"no-store" });
-    if (!res.ok) throw new Error("Profile not found");
-    const client = await res.json();
-    renderProfile(client);
-  }catch(err){
-    app.innerHTML = "Profile not found.";
-  }
-}
+      // Logo + logo link (link to website if available)
+      applyLogo(c.logoPath || DEFAULT_LOGO);
+      const site = c.links?.website || "";
+      $("logoLink").href = site ? normalizeUrl(site) : "#";
 
-loadProfile();
-</script>
+      // Links (auto-hide)
+      setLinkOrHide("btnWebsite",   c.links?.website);
+      setLinkOrHide("btnFacebook",  c.links?.facebook);
+      setLinkOrHide("btnInstagram", c.links?.instagram);
+      setLinkOrHide("btnTikTok",    c.links?.tiktok);
+
+      setLinkOrHide("btnLinkedIn",  c.links?.linkedin);
+      setLinkOrHide("btnPayPal",    c.links?.paypal);
+      setLinkOrHide("btnCashApp",   c.links?.cashapp);
+      setLinkOrHide("btnVenmo",     c.links?.venmo);
+
+      // vCard
+      const vcf = c.vcardPath ? String(c.vcardPath) : "/contact.vcf";
+      $("btnVcard").href = vcf;
+
+      // Contact info (auto-hide)
+      const name = (c.contact?.name || "").trim();
+      setText("contactName", name);
+      $("rowName").style.display = name ? "" : "none";
+
+      const phoneE164 = (c.contact?.phoneE164 || "").trim();
+      const phoneDisplay = (c.contact?.phoneDisplay || phoneE164 || "").trim();
+      $("contactPhone").href = phoneE164 ? `tel:${phoneE164}` : "#";
+      setText("contactPhone", phoneDisplay);
+      $("rowPhone").style.display = phoneDisplay ? "" : "none";
+
+      const email = (c.contact?.email || "").trim();
+      $("contactEmail").href = email ? `mailto:${email}` : "#";
+      setText("contactEmail", email);
+      $("rowEmail").style.display = email ? "" : "none";
+
+      // Quick actions (auto-hide container if empty)
+      $("pillCall").href = phoneE164 ? `tel:${phoneE164}` : "#";
+      $("pillText").href = phoneE164 ? `sms:${phoneE164}` : "#";
+      $("pillEmail").href = email ? `mailto:${email}` : "#";
+
+      const anyQuick = !!phoneE164 || !!email;
+      $("quickActions").style.display = anyQuick ? "" : "none";
+
+      // Hide whole contact section if no contact rows
+      const anyContact = !!name || !!phoneDisplay || !!email;
+      $("contactSection").style.display = anyContact ? "" : "none";
+    }
+
+    async function main() {
+      // Force canonical host (prevents apex/www mismatch)
+      if (location.hostname === "tap-deck.com") {
+        const target = `https://${CANONICAL_HOST}${location.pathname}${location.search}${location.hash}`;
+        location.replace(target);
+        return;
+      }
+
+      setText("year", new Date().getFullYear());
+
+      // Restore path if you use 404.html SPA redirect
+      const redirectPath = sessionStorage.redirectPath;
+      if (redirectPath) {
+        sessionStorage.removeItem("redirectPath");
+        history.replaceState(null, "", redirectPath);
+      }
+
+      const slug = getSlugFromPathOrQuery();
+      console.log("[Tap-Deck] slug:", slug, "data url:", DATA_PATH(slug));
+
+      try {
+        const client = await loadClient(slug);
+        applyClient(client);
+      } catch (err) {
+        console.error("[Tap-Deck] load/apply failed:", err);
+
+        // Try sample as fallback, but show REAL error in UI
+        try {
+          const sample = await loadClient("sample");
+          applyClient(sample);
+        } catch {}
+
+        setText("brand", "Profile not found");
+        setText("tagline", `Could not load "${slug}".`);
+        $("tagline").style.display = "";
+
+        // Put the real reason in About so you can diagnose fast
+        const msg = (err && err.message) ? err.message : String(err);
+        setText("about", `Error: ${msg}`);
+        $("aboutSection").style.display = "";
+      }
+    }
+
+    main();
+  </script>
 </body>
 </html>
