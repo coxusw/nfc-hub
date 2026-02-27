@@ -3,16 +3,24 @@
   TAP-DECK Theme Gallery (No search, no preview button)
   File: /theme-gallery/index.html
 
-  - Lists /themes/*.css automatically via GitHub API
-  - Shows thumbnail preview (iframe)
-  - “Use this theme” sends user to /pay/?theme=...&slug=...
+  Fixes:
+  ✅ Slug availability check uses SAME ORIGIN (relative fetch) → no CORS issues
+  ✅ Theme preview iframes use SAME ORIGIN (relative URLs) → consistent behavior
+  ✅ "Use this theme" button centered (Preview button removed)
+
+  How it works:
+  - Lists /themes/*.css via GitHub API (repo must be public)
+  - Shows a thumbnail preview (iframe) for each theme
+  - Slug box at top checks if /data/clients/{slug}.json exists
+  - "Use this theme" sends user to /pay/?theme=...&slug=...
+
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TAP-DECK Theme Gallery</title>
-  <meta name="description" content="Browse themes for your TAP-DECK profile." />
+  <title>Tap-Deck Themes</title>
+  <meta name="description" content="Browse themes for your Tap-Deck profile." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -24,6 +32,9 @@
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
       --chip:rgba(255,255,255,.08);
+      --good: rgba(34,197,94,.25);
+      --bad: rgba(239,68,68,.25);
+      --warn: rgba(245,158,11,.25);
     }
     *{box-sizing:border-box}
     body{
@@ -38,53 +49,66 @@
     }
     header{ padding:28px 18px 14px; text-align:center; }
     h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:32px; }
-    .sub{margin:10px auto 0; max-width:1000px; color:var(--muted); line-height:1.5}
+    .sub{margin:10px auto 0; max-width:980px; color:var(--muted); line-height:1.5}
     .wrap{max-width:1150px; margin:0 auto; padding:14px 16px 40px}
 
-    /* Slug box (center + highlighted) */
+    /* Slug input */
     .slugBox{
-      max-width:680px;
-      margin: 10px auto 0;
+      max-width:720px;
+      margin: 14px auto 18px;
       padding: 14px;
-      border-radius: 18px;
+      border-radius: 16px;
+      border: 2px solid rgba(239,68,68,.60); /* red outline */
       background: rgba(0,0,0,.18);
-      border: 2px solid rgba(239,68,68,.65);
-      box-shadow: 0 18px 60px rgba(0,0,0,.25);
     }
-    .slugTitle{ font-weight:900; margin:0 0 6px 0; text-align:center; }
-    .slugRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; }
+    .slugTitle{
+      font-weight:900;
+      margin-bottom:8px;
+      letter-spacing:.2px;
+      text-align:center;
+    }
+    .slugRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      align-items:center;
+    }
     .slugRow input{
-      width:min(520px,100%);
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(0,0,0,.22);
-      color:var(--text);
-      outline:none;
+      width: min(520px, 100%);
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline: none;
+      font-size: 16px;
     }
     .slugHelp{
       margin-top:10px;
-      text-align:center;
       color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
+      font-size:13px;
+      line-height:1.4;
+      text-align:center;
     }
     .slugStatus{
       display:inline-block;
-      margin-bottom:8px;
       padding:6px 10px;
       border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
+      border:1px solid var(--border);
       background: rgba(255,255,255,.08);
+      color: var(--muted);
       font-weight:800;
+      margin-bottom:8px;
     }
-    .ok{ background: rgba(34,197,94,.20) !important; color: var(--text) !important; border-color: rgba(34,197,94,.35) !important; }
-    .bad{ background: rgba(239,68,68,.22) !important; color: var(--text) !important; border-color: rgba(239,68,68,.40) !important; }
+    .slugStatus.good{ border-color: var(--good); background: rgba(34,197,94,.12); color: var(--text); }
+    .slugStatus.bad{ border-color: var(--bad); background: rgba(239,68,68,.12); color: var(--text); }
+    .slugStatus.warn{ border-color: var(--warn); background: rgba(245,158,11,.12); color: var(--text); }
 
     .controls{
       display:flex; gap:10px; flex-wrap:wrap;
       align-items:center; justify-content:center;
-      margin:14px 0 18px;
+      margin:10px 0 18px;
     }
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
@@ -93,7 +117,7 @@
       background:rgba(255,255,255,.08);
       color:var(--text);
       text-decoration:none;
-      font-weight:800;
+      font-weight:700;
       cursor:pointer;
       user-select:none;
     }
@@ -109,7 +133,7 @@
       padding:14px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
-    .name{ font-weight:900; margin:0 0 8px; font-size:14px; word-break:break-word; }
+    .name{ font-weight:800; margin:0 0 8px; font-size:14px; word-break:break-word; }
     .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
     .chip{
       font-size:12px; padding:6px 10px; border-radius:999px;
@@ -128,21 +152,24 @@
     }
     .thumb iframe{ width:100%; height:100%; border:0; }
 
-    .rowCenter{ display:flex; justify-content:center; margin-top:12px; }
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; justify-content:center;}
     .btn{
-      min-width:220px;
+      min-width: 190px;
       text-align:center;
-      padding:11px 14px;
-      border-radius:12px;
-      border:1px solid rgba(34,197,94,.30);
-      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.10);
       color:var(--text);
       text-decoration:none;
       font-weight:900;
       cursor:pointer;
     }
+    .btn.primary{
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
+      border-color:rgba(34,197,94,.28);
+    }
 
-    .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; text-align:center; }
+    .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
     #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
     footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
@@ -153,24 +180,26 @@
   <header>
     <h1>Choose a theme</h1>
     <p class="sub">
-      Pick your slug, then choose a theme. You’ll pay/activate, then fill out your info.
+      Pick a theme and claim your slug. When ready, click <b>Use this theme</b>.
     </p>
+  </header>
 
+  <main class="wrap">
+
+    <!-- SLUG INPUT (required) -->
     <div class="slugBox">
-      <div class="slugTitle">Step 1: Choose your slug (required)</div>
+      <div class="slugTitle">Step 1: Choose your profile slug (required)</div>
       <div class="slugRow">
-        <input id="slugInput" placeholder="example: john-doe or mybusiness" autocomplete="off" />
+        <input id="slugInput" placeholder="example: john-doe, mybusiness, sam" autocomplete="off" />
       </div>
 
       <div class="slugHelp">
-        <div id="slugStatus" class="slugStatus">Enter a slug to check availability</div><br/>
+        <div id="slugStatus" class="slugStatus warn">Type a slug to check availability…</div><br/>
         Your profile will be:
         <code id="slugPreview">https://tap-deck.com/your-slug</code>
       </div>
     </div>
-  </header>
 
-  <main class="wrap">
     <div class="controls">
       <button class="pill" id="btnReload" type="button">Reload list</button>
     </div>
@@ -179,19 +208,36 @@
     <section class="grid" id="grid"></section>
 
     <footer>
-      Tip: Add new CSS files into <code>/themes</code>, refresh this page, and they will appear automatically.
+      Tip: If you add new CSS files into <code>/themes</code>, refresh this page and they will appear automatically.
     </footer>
   </main>
 
 <script>
+/* =========================================================
+   ✅ EDIT HERE (GitHub repo)
+========================================================= */
 const GITHUB_OWNER  = "coxusw";
 const GITHUB_REPO   = "tap-deck";
 const GITHUB_BRANCH = "main";
-
-const BRAND_HOST = "tap-deck.com";
-const LOGO_URL_FOR_PREVIEW = "/logo.jpg"; // ✅ uses your repo root logo.jpg
+/* ========================================================= */
 
 const $ = (id) => document.getElementById(id);
+
+/* Always use SAME ORIGIN to avoid CORS issues between www and apex */
+const SITE_ORIGIN = location.origin;
+
+function makeSlug(input){
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getParam(name){
+  return new URLSearchParams(location.search).get(name) || "";
+}
 
 function classify(file){
   const n = file.toLowerCase();
@@ -208,31 +254,17 @@ function humanize(file){
     .replace(/\b\w/g, (m)=>m.toUpperCase());
 }
 
-function slugify(s){
-  return String(s||"")
-    .trim()
-    .toLowerCase()
-    .replace(/https?:\/\/+/g,"")
-    .replace(/[^a-z0-9]+/g,"-")
-    .replace(/-+/g,"-")
-    .replace(/^-|-$/g,"");
-}
-
+/* Build URLs using SAME ORIGIN */
 function previewUrl(themeFile){
-  const u = new URL(`https://${BRAND_HOST}/preview/`);
+  const u = new URL("/preview/", SITE_ORIGIN);
   u.searchParams.set("theme", themeFile);
   u.searchParams.set("embed", "1");
 
-  // ✅ force logo in previews
-  u.searchParams.set("logo", LOGO_URL_FOR_PREVIEW);
-
-  // sample content
-  u.searchParams.set("businessName", "Crested Critters");
-  u.searchParams.set("tagline", "Premium bioactive supplies");
-  u.searchParams.set("about", "Preview thumbnail.");
-  u.searchParams.set("website", "https://crestedcritters.com");
+  u.searchParams.set("businessName", "Your Business Name");
+  u.searchParams.set("tagline", "Tagline or short promise");
+  u.searchParams.set("about", "This is a preview thumbnail.");
+  u.searchParams.set("website", "https://example.com");
   u.searchParams.set("facebook", "https://facebook.com/");
-  u.searchParams.set("instagram", "https://instagram.com/");
   u.searchParams.set("tiktok", "https://tiktok.com/");
   u.searchParams.set("name", "Your Name");
   u.searchParams.set("phone", "+11234567890");
@@ -241,7 +273,7 @@ function previewUrl(themeFile){
 }
 
 function payUrl(themeFile, slug){
-  const u = new URL(`https://${BRAND_HOST}/pay/`);
+  const u = new URL("/pay/", SITE_ORIGIN);
   u.searchParams.set("theme", themeFile);
   if (slug) u.searchParams.set("slug", slug);
   return u.toString();
@@ -250,7 +282,9 @@ function payUrl(themeFile, slug){
 async function fetchThemes(){
   const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
   const res = await fetch(api, { headers: { "Accept":"application/vnd.github+json" }});
-  if(!res.ok) throw new Error(`GitHub API error ${res.status}. Is the repo public, and does /themes exist?`);
+  if(!res.ok){
+    throw new Error(`GitHub API error ${res.status}. Is the repo public, and does /themes exist?`);
+  }
   const data = await res.json();
   if(!Array.isArray(data)) throw new Error("Unexpected GitHub API response.");
   return data
@@ -259,15 +293,58 @@ async function fetchThemes(){
     .sort((a,b)=>a.localeCompare(b));
 }
 
-async function slugAvailable(slug){
-  if(!slug) return null;
-  // checks if /data/clients/{slug}.json exists on the live site
-  const url = `https://${BRAND_HOST}/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
-  const res = await fetch(url, { method:"GET", cache:"no-store" });
-  return res.status === 404; // 404 means available
-}
+/* Slug availability check:
+   - fetch /data/clients/{slug}.json from SAME ORIGIN
+   - 200 => taken
+   - 404 => available
+*/
+let slugCheckTimer = null;
+async function checkSlugAvailability(slug){
+  const statusEl = $("slugStatus");
+  const previewEl = $("slugPreview");
 
-let ALL = [];
+  const clean = makeSlug(slug);
+  const publicUrl = `${SITE_ORIGIN}/${clean || "your-slug"}`;
+
+  previewEl.textContent = publicUrl;
+
+  if (!clean) {
+    statusEl.className = "slugStatus warn";
+    statusEl.textContent = "Type a slug to check availability…";
+    return { ok:false, available:false, slug:"" };
+  }
+
+  statusEl.className = "slugStatus warn";
+  statusEl.textContent = "Checking availability…";
+
+  try{
+    const url = new URL(`/data/clients/${encodeURIComponent(clean)}.json`, SITE_ORIGIN);
+    url.searchParams.set("v", Date.now());
+
+    const res = await fetch(url.toString(), { cache:"no-store" });
+
+    if (res.status === 404) {
+      statusEl.className = "slugStatus good";
+      statusEl.textContent = "Available ✅";
+      return { ok:true, available:true, slug:clean };
+    }
+
+    if (res.ok) {
+      statusEl.className = "slugStatus bad";
+      statusEl.textContent = "Taken ❌ Try another";
+      return { ok:true, available:false, slug:clean };
+    }
+
+    statusEl.className = "slugStatus warn";
+    statusEl.textContent = `Could not check (HTTP ${res.status})`;
+    return { ok:false, available:false, slug:clean };
+
+  }catch(err){
+    statusEl.className = "slugStatus warn";
+    statusEl.textContent = "Check failed (network/CORS).";
+    return { ok:false, available:false, slug:clean };
+  }
+}
 
 function render(files){
   const grid = $("grid");
@@ -290,11 +367,13 @@ function render(files){
         <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
       </div>
 
-      <div class="rowCenter">
-        <button class="btn" data-use="${encodeURIComponent(f)}">Use this theme</button>
+      <div class="row">
+        <button class="btn primary" data-use="${encodeURIComponent(f)}">Use this theme</button>
       </div>
 
-      <div class="meta">Continues to activation/payment, then your intake form.</div>
+      <div class="meta">
+        Your slug + theme will carry into activation/payment, then the intake form.
+      </div>
     `;
     grid.appendChild(el);
   }
@@ -302,23 +381,24 @@ function render(files){
   grid.querySelectorAll("button[data-use]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
-      const raw = ($("slugInput").value || "");
-      const slug = slugify(raw);
+      const rawSlug = ($("slugInput").value || "");
+      const slug = makeSlug(rawSlug);
 
-      if(!slug){
-        alert("Please enter a slug first.");
+      if (!slug) {
+        alert("Please enter a slug first (example: john-doe, mybusiness).");
         $("slugInput").focus();
         return;
       }
 
-      // last-second check
-      $("slugStatus").textContent = "Checking availability…";
-      const available = await slugAvailable(slug);
-
-      if(available === false){
-        $("slugStatus").textContent = "Slug is already taken — choose another.";
-        $("slugStatus").className = "slugStatus bad";
-        alert("That slug is already taken. Please choose a different slug.");
+      // Require availability
+      const chk = await checkSlugAvailability(slug);
+      if (!chk.ok) {
+        alert("Could not verify slug availability. Please try again.");
+        return;
+      }
+      if (!chk.available) {
+        alert("That slug is already taken. Please choose another.");
+        $("slugInput").focus();
         return;
       }
 
@@ -329,39 +409,28 @@ function render(files){
   $("status").textContent = `${files.length} theme(s) shown.`;
 }
 
+let ALL = [];
+
 async function main(){
   $("status").textContent = "Loading themes…";
-  ALL = await fetchThemes();
-  render(ALL);
+  try{
+    ALL = await fetchThemes();
+    render(ALL);
+  }catch(err){
+    $("status").textContent = err.message || String(err);
+  }
 }
-
-let slugTimer = null;
-$("slugInput").addEventListener("input", ()=>{
-  const slug = slugify($("slugInput").value);
-  $("slugPreview").textContent = `https://${BRAND_HOST}/${slug || "your-slug"}`;
-  $("slugStatus").textContent = slug ? "Checking availability…" : "Enter a slug to check availability";
-  $("slugStatus").className = "slugStatus";
-
-  clearTimeout(slugTimer);
-  if(!slug) return;
-
-  slugTimer = setTimeout(async ()=>{
-    const available = await slugAvailable(slug);
-    if(available){
-      $("slugStatus").textContent = "Available ✅";
-      $("slugStatus").className = "slugStatus ok";
-    }else{
-      $("slugStatus").textContent = "Taken ❌ (pick a different slug)";
-      $("slugStatus").className = "slugStatus bad";
-    }
-  }, 350);
-});
 
 $("btnReload").addEventListener("click", main);
 
-main().catch(err=>{
-  $("status").textContent = err.message || String(err);
+$("slugInput").addEventListener("input", ()=>{
+  clearTimeout(slugCheckTimer);
+  slugCheckTimer = setTimeout(()=>{
+    checkSlugAvailability($("slugInput").value || "");
+  }, 300);
 });
+
+main();
 </script>
 </body>
 </html>
