@@ -1,0 +1,25 @@
+{
+  "slug": "testingtimmmy",
+  "businessName": "testing",
+  "tagline": "testingtimmy",
+  "about": "testingtimmy",
+  "links": {
+    "website": "https://google.com",
+    "facebook": "",
+    "instagram": "",
+    "tiktok": "",
+    "linkedin": "",
+    "paypal": "https://paypal.com",
+    "cashapp": "",
+    "venmo": ""
+  },
+  "contact": {
+    "name": "testingtimmy",
+    "phoneE164": "+11023456789",
+    "phoneDisplay": "1023456789",
+    "email": "chrisuswcox@gmail.com"
+  },
+  "theme": "animated-galaxy-flow.css",
+  "logoPath": "/assets/logos/testingtimmmy.jpg",
+  "vcardPath": "/vcards/testingtimmmy.vcf"
+}
