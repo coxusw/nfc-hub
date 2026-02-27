@@ -6,10 +6,10 @@
   <title>Tap-Deck</title>
 
   <!-- Base styles (shared layout) -->
-  <link rel="stylesheet" href="/base.css?v=1" />
+  <link rel="stylesheet" href="/base.css?v=2" />
 
   <!-- Theme stylesheet (swapped by JS) -->
-  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css?v=1" />
+  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css?v=2" />
 </head>
 
 <body>
@@ -24,6 +24,14 @@
         <p class="tagline" id="tagline"></p>
       </header>
 
+      <!-- Quick contact pills (Call / Text / Email) -->
+      <nav class="quick" id="quickWrap" aria-label="Quick actions">
+        <a class="pill-btn" id="pillCall" href="#">Call</a>
+        <a class="pill-btn" id="pillText" href="#">Text</a>
+        <a class="pill-btn" id="pillEmail" href="#">Email</a>
+      </nav>
+
+      <!-- Main link buttons -->
       <nav class="links" id="linksWrap" aria-label="Links">
         <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
         <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
@@ -142,27 +150,21 @@
       const wrap = $("linksWrap");
       if(!wrap) return;
 
-      // Only count visible buttons
       const btns = Array.from(wrap.querySelectorAll("a.btn"))
         .filter(a => !a.classList.contains("is-hidden"));
 
-      // Reset classes
       wrap.classList.remove("links--grid");
       btns.forEach(b=>{
         b.classList.remove("btn--last-full");
         b.classList.remove("btn--small");
       });
 
-      // Make smaller if there are a lot
       if(btns.length >= 5){
         btns.forEach(b => b.classList.add("btn--small"));
       }
 
-      // Use 2-column grid when there are 4+ buttons
       if(btns.length >= 4){
         wrap.classList.add("links--grid");
-
-        // If odd count, last button spans full width
         if(btns.length % 2 === 1){
           btns[btns.length - 1].classList.add("btn--last-full");
         }
@@ -170,7 +172,6 @@
     }
 
     async function fetchClient(slug){
-      // client JSON lives at /data/clients/{slug}.json
       const url = `https://${BRAND_HOST}/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
       const res = await fetch(url, { cache: "no-store" });
       if(!res.ok) throw new Error("Profile not found");
@@ -200,7 +201,6 @@
       const a = $("btnVcard");
       if(!a) return;
 
-      // If repo provides vcardPath, use it. Otherwise generate a local blob.
       const vpath = (client.vcardPath || "").trim();
       if(vpath){
         a.removeAttribute("download");
@@ -216,16 +216,44 @@
       a.download = `${client.slug || "contact"}.vcf`;
     }
 
+    function wireQuickActions(phoneE164, email){
+      const quick = $("quickWrap");
+      if(!quick) return;
+
+      const call = $("pillCall");
+      const text = $("pillText");
+      const mail = $("pillEmail");
+
+      // Default: hide all
+      hide(call); hide(text); hide(mail);
+
+      if(phoneE164){
+        show(call);
+        show(text);
+        call.href = `tel:${phoneE164}`;
+        text.href = `sms:${phoneE164}`;
+      }
+
+      if(email){
+        show(mail);
+        mail.href = `mailto:${email}`;
+      }
+
+      // If none visible, hide the whole row
+      const anyVisible = [call,text,mail].some(x => x && !x.classList.contains("is-hidden"));
+      if(!anyVisible) hide(quick); else show(quick);
+    }
+
     async function main(){
       if (getParam("embed") === "1") document.body.classList.add("embed");
       $("year").textContent = new Date().getFullYear();
 
-      // Path-based slug: /slug
       const pathSlug = location.pathname.replace(/^\/+|\/+$/g, "");
       const slug = (pathSlug || getParam("client") || "").trim().toLowerCase();
 
       if(!slug){
         $("brand").textContent = "No profile selected";
+        hide($("quickWrap"));
         hide($("linksWrap"));
         hide($("aboutSection"));
         hide($("contactSection"));
@@ -239,14 +267,11 @@
       $("footerBrand").textContent = client.businessName || "Tap-Deck";
       $("tagline").textContent = client.tagline || "";
 
-      // Theme
       applyTheme(client.theme || DEFAULT_THEME);
 
-      // Logo
       setLogo(client.logoPath || DEFAULT_LOGO);
       $("logoLink").href = normalizeUrl(client.links?.website || "") || "#";
 
-      // About
       const about = (client.about || "").trim();
       if(about){
         $("about").textContent = about;
@@ -255,22 +280,18 @@
         hide($("aboutSection"));
       }
 
-      // Links (hide blanks)
       const links = client.links || {};
       setBtn("btnWebsite",  normalizeUrl(links.website));
       setBtn("btnFacebook", normalizeUrl(links.facebook));
       setBtn("btnInstagram", normalizeUrl(links.instagram));
       setBtn("btnTikTok",   normalizeUrl(links.tiktok));
-
       setBtn("btnLinkedIn", normalizeUrl(links.linkedin));
       setBtn("btnPayPal",   normalizeUrl(links.paypal));
       setBtn("btnCashApp",  normalizeUrl(links.cashapp));
       setBtn("btnVenmo",    normalizeUrl(links.venmo));
 
-      // vCard
       wireVcard(client);
 
-      // Contact
       $("contactName").textContent = client.contact?.name || client.businessName || "";
 
       const phone = (client.contact?.phoneE164 || "").trim();
@@ -291,13 +312,16 @@
         hide($("rowEmail"));
       }
 
-      // ✅ apply the 2x2 layout after we hide blanks
+      // ✅ Quick pills (call/text/email)
+      wireQuickActions(phone, email);
+
       applyLinksLayout();
     }
 
     main().catch(err=>{
       console.error(err);
       $("brand").textContent = "Profile not found";
+      hide($("quickWrap"));
       hide($("linksWrap"));
       hide($("aboutSection"));
       hide($("contactSection"));
