@@ -1,0 +1,107 @@
+/* animated-13-northern-lights.css
+   kind: animated
+   Auto-generated theme for Tap-Deck. */
+
+:root {
+  --td-bg1: #0e1409;
+  --td-bg2: #0b1911;
+  --td-card: rgba(255,255,255,0.06);
+  --td-border: rgba(255,255,255,0.14);
+  --td-text: #eef2ff;
+  --td-muted: #b6c2ff;
+  --td-accent1: #5831f9;
+  --td-accent2: #5ef235;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  color: var(--td-text);
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--td-accent1) 30%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 85% 25%, color-mix(in srgb, var(--td-accent2) 26%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, var(--td-bg1), var(--td-bg2));
+  background-attachment: fixed;
+}
+
+.card {
+  background: color-mix(in srgb, var(--td-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--td-border) 85%, transparent);
+  box-shadow: 0 18px 60px rgba(0,0,0,.28);
+}
+
+.brand {
+  color: var(--td-text);
+}
+
+.tagline {
+  color: color-mix(in srgb, var(--td-text) 75%, var(--td-muted));
+}
+
+.section-title {
+  color: color-mix(in srgb, var(--td-text) 80%, var(--td-muted));
+}
+
+.small {
+  color: color-mix(in srgb, var(--td-text) 70%, var(--td-muted));
+}
+
+.sep {
+  border-color: color-mix(in srgb, var(--td-border) 70%, transparent);
+}
+
+.logo {
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.btn {
+  border: 1px solid color-mix(in srgb, var(--td-border) 80%, transparent);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--td-accent1) 55%, rgba(255,255,255,.08)),
+    color-mix(in srgb, var(--td-accent2) 55%, rgba(255,255,255,.06))
+  );
+  color: #0b0f1a;
+  font-weight: 900;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.pill {
+  border: 1px solid color-mix(in srgb, var(--td-border) 75%, transparent);
+  background: color-mix(in srgb, var(--td-card) 60%, transparent);
+  color: color-mix(in srgb, var(--td-text) 75%, var(--td-muted));
+}
+
+.contact-row {
+  border: 1px solid color-mix(in srgb, var(--td-border) 70%, transparent);
+  background: color-mix(in srgb, var(--td-card) 70%, transparent);
+}
+
+.contact-row a {
+  color: color-mix(in srgb, var(--td-text) 88%, var(--td-accent2));
+}
+
+
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    background-size: 120% 120%;
+    animation: td-bgshift 16s ease-in-out infinite alternate;
+  }
+  @keyframes td-bgshift {
+    0%   { background-position: 0% 0%, 100% 0%, 0% 0%; }
+    100% { background-position: 100% 20%, 0% 30%, 0% 0%; }
+  }
+  .btn {
+    background-size: 160% 160%;
+    animation: td-btnglow 8s ease-in-out infinite alternate;
+  }
+  @keyframes td-btnglow {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+}
