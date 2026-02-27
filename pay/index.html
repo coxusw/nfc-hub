@@ -5,17 +5,26 @@
 
   WHAT THIS PAGE DOES
   - Reads ?theme=...&slug=...
-  - Shows selected theme + slug
-  - Opens Square payment link
-  - Allows ONE-TIME bypass token
-  - After valid token → redirects to Google Form with theme+slug prefilled
+  - Shows "Pay with Square" button
+  - Optional: ONE-TIME bypass token (validated via Apps Script Web App)
+  - After valid token, redirects to Google Form with theme+slug prefilled
+
+  Also:
+  - Slug is required and auto-slugified
+  - Live slug availability checking (blocks duplicates)
+
+  ✅ EDIT THESE (if needed):
+    SQUARE_PAYMENT_LINK
+    GOOGLE_FORM_URL
+    THEME_QUERY_KEY, SLUG_QUERY_KEY
+    TOKEN_WEBAPP_URL
+    GITHUB_OWNER/REPO/BRANCH  (slug availability check)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Activate your Tap-Deck profile</title>
-
+  <title>Activate your Tap-Deck Profile</title>
   <style>
     :root{
       --bg1:#050816; --bg2:#0b1020;
@@ -26,6 +35,7 @@
       --btnb:rgba(255,255,255,.16);
       --good:rgba(34,197,94,.18);
       --bad:rgba(239,68,68,.18);
+      --warn:rgba(245,158,11,.18);
     }
     *{box-sizing:border-box}
     body{
@@ -39,40 +49,27 @@
       display:flex; align-items:center; justify-content:center;
       padding:24px 14px;
     }
-    .wrap{width:min(680px,100%)}
+    .wrap{width:min(720px,100%)}
     .card{
       background:var(--card);
       border:1px solid var(--border);
       border-radius:18px;
-      padding:20px;
+      padding:18px;
       box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
     h1{margin:0 0 10px 0; font-size:22px}
-    .sub{margin:0 0 16px 0; color:var(--muted); line-height:1.45}
-
-    .box{
-      margin-top:14px;
-      padding:14px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.18);
-    }
-
-    .row{
-      display:flex; 
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:8px;
-      flex-wrap:wrap;
-      gap:6px;
-    }
+    .sub{margin:0 0 14px 0; color:var(--muted); line-height:1.45}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
 
     .pill{
-      padding:8px 12px;
-      border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:9px 12px; border-radius:999px;
       border:1px solid var(--border);
       background:rgba(255,255,255,.08);
-      font-weight:700;
+      color:var(--text);
+      font-weight:800;
+      text-decoration:none;
+      user-select:none;
     }
 
     .btn{
@@ -87,7 +84,6 @@
       text-decoration:none;
       cursor:pointer;
     }
-
     .btn.primary{
       background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
       border-color:rgba(34,197,94,.30);
@@ -95,12 +91,20 @@
 
     input{
       width:100%;
-      padding:12px;
+      padding:12px 12px;
       border-radius:12px;
       border:1px solid var(--border);
       background:rgba(0,0,0,.22);
       color:var(--text);
       outline:none;
+    }
+
+    .box{
+      margin-top:14px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
     }
 
     .notice{
@@ -111,72 +115,83 @@
       background:rgba(255,255,255,.06);
       color:var(--muted);
       display:none;
+      line-height:1.35;
       white-space:pre-wrap;
     }
     .notice.ok{ display:block; background:var(--good); color:var(--text); }
     .notice.bad{ display:block; background:var(--bad); color:var(--text); }
+    .notice.warn{ display:block; background:var(--warn); color:var(--text); }
 
-    .small{font-size:12px; color:var(--muted)}
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
+    .small{font-size:12px; color:var(--muted); line-height:1.4}
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="card">
       <h1>Activate your profile</h1>
-      <p class="sub">
-        Pay to activate your Tap-Deck profile, or use a one-time token.
-      </p>
+      <p class="sub">Theme → activate → fill out your info → your link goes live.</p>
 
       <div class="box">
-        <div class="row">
+        <div class="row" style="justify-content:space-between;">
           <div class="small">Selected theme:</div>
           <span class="pill" id="themePill">—</span>
         </div>
-        <div class="row">
-          <div class="small">Your slug:</div>
+        <div class="row" style="justify-content:space-between; margin-top:8px;">
+          <div class="small">Desired slug:</div>
           <span class="pill" id="slugPill">—</span>
         </div>
+        <div class="small" style="margin-top:10px;">
+          Your profile link will be:
+          <code id="linkPreview">https://www.tap-deck.com/your-slug</code>
+        </div>
+        <div id="slugStatus" class="notice warn" style="display:block; margin-top:10px;">Checking slug…</div>
       </div>
 
-      <div style="margin-top:16px;">
-        <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">
-          Pay with Square
-        </a>
+      <div style="margin-top:14px;">
+        <a class="btn primary" id="payBtn" href="#" target="_blank" rel="noopener">Pay with Square</a>
+        <div class="small" style="margin-top:8px;">
+          Payment verification can be added later. For now, payment is separate from the intake form.
+        </div>
       </div>
 
       <div class="box">
-        <div style="font-weight:900; margin-bottom:8px;">
-          Have a one-time bypass token?
-        </div>
+        <div style="font-weight:900; margin-bottom:8px;">Have a one-time bypass token?</div>
+        <div class="small" style="margin-bottom:10px;">Tokens are single-use and validated by the token service.</div>
 
         <input id="token" placeholder="Enter token (example: CCX-9F3K-2Q7M)" />
-        <div style="margin-top:10px;">
-          <button class="btn" id="tokenBtn" type="button">
-            Use token and continue
-          </button>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="tokenBtn" type="button">Use token and continue</button>
         </div>
 
         <div class="notice" id="notice"></div>
       </div>
 
       <div class="small" style="margin-top:14px;">
-        Your profile will be: <b>www.tap-deck.com/your-slug</b>
+        Slug must be unique. If yours is taken, go back and choose a different one.
       </div>
     </section>
   </main>
 
 <script>
 /* =========================================================
-   CONFIG
+   ✅ EDIT THESE
 ========================================================= */
 const SQUARE_PAYMENT_LINK = "https://square.link/u/tvd67HVK";
 
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
+const GOOGLE_FORM_URL   = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
+const THEME_QUERY_KEY   = "entry.2114451287";
+const SLUG_QUERY_KEY    = "entry.1052989883";
 
-const THEME_QUERY_KEY = "entry.2114451287";
-const SLUG_QUERY_KEY  = "entry.1052989883";
+const TOKEN_WEBAPP_URL  = "https://script.google.com/macros/s/AKfycbwdec2PZlZb3HSUJWETV14W4GiiGJdXia5NNrPt18HCGWy17X_vX3RQUbI47G5dGhlKug/exec";
 
-const TOKEN_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwdec2PZlZb3HSUJWETV14W4GiiGJdXia5NNrPt18HCGWy17X_vX3RQUbI47G5dGhlKug/exec";
+/* Slug availability check (repo must be public) */
+const GITHUB_OWNER  = "coxusw";
+const GITHUB_REPO   = "tap-deck";
+const GITHUB_BRANCH = "main";
+
+/* Live site host for the preview line */
+const BRAND_HOST = "www.tap-deck.com";
 /* ========================================================= */
 
 const $ = (id)=>document.getElementById(id);
@@ -201,6 +216,13 @@ function showNotice(msg, kind){
   n.style.display = msg ? "" : "none";
 }
 
+function showSlugStatus(msg, kind){
+  const n = $("slugStatus");
+  n.className = "notice " + (kind || "");
+  n.textContent = msg || "";
+  n.style.display = msg ? "" : "none";
+}
+
 function buildFormUrl(theme, slug){
   const u = new URL(GOOGLE_FORM_URL);
   if (theme) u.searchParams.set(THEME_QUERY_KEY, theme);
@@ -208,26 +230,66 @@ function buildFormUrl(theme, slug){
   return u.toString();
 }
 
-function main(){
-  const theme = (getParam("theme") || "").trim();
-  const slug  = slugify(getParam("slug") || "");
+async function checkSlugAvailable(slug){
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/clients/${encodeURIComponent(slug)}.json?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const res = await fetch(url, { headers: { "Accept":"application/vnd.github+json" } });
 
-  $("themePill").textContent = theme || "Not set";
-  $("slugPill").textContent  = slug  || "Not set";
+  if (res.status === 404) return { ok:true, available:true };
+  if (res.ok) return { ok:true, available:false };
+  return { ok:false, code: res.status };
+}
+
+async function main(){
+  const themeRaw = (getParam("theme") || "").trim();
+  const slugRaw  = (getParam("slug") || "").trim();
+
+  const slug = slugify(slugRaw);
+
+  $("themePill").textContent = themeRaw || "Not set";
+  $("slugPill").textContent  = slug || "Not set";
+  $("linkPreview").textContent = `https://${BRAND_HOST}/${slug || "your-slug"}`;
 
   $("payBtn").href = SQUARE_PAYMENT_LINK;
+
+  if(!themeRaw || !slug){
+    showSlugStatus("Missing theme or slug. Please go back to the theme gallery and try again.", "bad");
+    $("tokenBtn").disabled = true;
+    $("tokenBtn").style.opacity = ".55";
+    return;
+  }
+
+  // Check slug availability
+  showSlugStatus("Checking slug availability…", "warn");
+  const r = await checkSlugAvailable(slug);
+  if(!r.ok){
+    showSlugStatus(`Could not verify slug right now (error ${r.code || ""}). Try again later.`, "bad");
+    $("tokenBtn").disabled = true;
+    $("tokenBtn").style.opacity = ".55";
+    return;
+  }
+  if(!r.available){
+    showSlugStatus("That slug is already taken ❌ Go back and choose a different slug.", "bad");
+    $("tokenBtn").disabled = true;
+    $("tokenBtn").style.opacity = ".55";
+    return;
+  }
+  showSlugStatus("Slug is available ✅ You can proceed.", "ok");
 
   $("tokenBtn").addEventListener("click", async ()=>{
     const token = ($("token").value || "").trim();
     if (!token) return showNotice("Enter a token first.", "bad");
 
-    showNotice("Validating token…", "");
+    if (!TOKEN_WEBAPP_URL || TOKEN_WEBAPP_URL.includes("PASTE_")) {
+      return showNotice("Token service not configured. (TOKEN_WEBAPP_URL not set)", "bad");
+    }
+
+    showNotice("Validating token…", "warn");
 
     try{
       const u = new URL(TOKEN_WEBAPP_URL);
       u.searchParams.set("action", "redeem");
       u.searchParams.set("token", token);
-      u.searchParams.set("theme", theme);
+      u.searchParams.set("theme", themeRaw);
       u.searchParams.set("slug", slug);
 
       const res = await fetch(u.toString(), { cache:"no-store" });
@@ -235,10 +297,8 @@ function main(){
 
       if (!data.ok) throw new Error(data.error || "Token rejected");
 
-      showNotice("Token accepted! Redirecting…", "ok");
-      setTimeout(()=>{
-        location.href = buildFormUrl(theme, slug);
-      }, 650);
+      showNotice("Token accepted! Sending you to the intake form…", "ok");
+      setTimeout(()=>{ location.href = data.formUrl || buildFormUrl(themeRaw, slug); }, 650);
 
     }catch(err){
       showNotice("Token failed: " + (err.message || String(err)), "bad");
