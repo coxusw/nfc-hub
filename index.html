@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tap-Deck</title>
 
-  <!-- Base styles (shared layout) -->
   <link rel="stylesheet" href="/base.css?v=2" />
-
-  <!-- Theme stylesheet (swapped by JS) -->
-  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css?v=2" />
+  <link id="themeStylesheet" rel="stylesheet" href="/themes/theme-01-neon-dark.css?v=1" />
 </head>
 
 <body>
   <main class="wrap">
     <section class="card">
+
+      <!-- ================= HEADER ================= -->
       <header class="header">
         <a id="logoLink" href="#" target="_blank" rel="noopener" style="text-decoration:none">
           <img id="logoImg" class="logo" alt="Logo" src="/assets/logos/crestedcritters.png" />
@@ -24,38 +23,39 @@
         <p class="tagline" id="tagline"></p>
       </header>
 
-      <!-- Quick contact pills (Call / Text / Email) -->
-      <nav class="quick" id="quickWrap" aria-label="Quick actions">
-        <a class="pill-btn" id="pillCall" href="#">Call</a>
-        <a class="pill-btn" id="pillText" href="#">Text</a>
-        <a class="pill-btn" id="pillEmail" href="#">Email</a>
-      </nav>
-
-      <!-- Main link buttons -->
-      <nav class="links" id="linksWrap" aria-label="Links">
-        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
-        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
-        <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
-        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
-
-        <a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
-        <a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
-        <a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
-        <a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
-
-        <!-- vCard -->
-        <a class="btn" id="btnVcard" href="#" download>Save Contact</a>
+      <!-- ================= MAIN LINKS ================= -->
+      <nav class="links" id="linksWrap">
+        <a class="btn btn--grad" id="btnWebsite" href="#" target="_blank">Website</a>
+        <a class="btn btn--grad" id="btnFacebook" href="#" target="_blank">Facebook</a>
+        <a class="btn btn--grad" id="btnInstagram" href="#" target="_blank">Instagram</a>
+        <a class="btn btn--grad" id="btnTikTok" href="#" target="_blank">TikTok</a>
+        <a class="btn btn--grad" id="btnLinkedIn" href="#" target="_blank">LinkedIn</a>
+        <a class="btn btn--grad" id="btnPayPal" href="#" target="_blank">PayPal</a>
+        <a class="btn btn--grad" id="btnCashApp" href="#" target="_blank">Cash App</a>
+        <a class="btn btn--grad" id="btnVenmo" href="#" target="_blank">Venmo</a>
+        <a class="btn btn--grad" id="btnVcard" href="#" download>Save Contact</a>
       </nav>
 
       <hr class="sep" />
 
+      <!-- ================= ABOUT ================= -->
       <section id="aboutSection">
         <div class="section-title">About</div>
-        <div id="about" class="small" style="font-size:14px; color:rgba(238,242,255,.86)"></div>
+        <div id="about" class="small"></div>
       </section>
+
+      <!-- ================= ACTION BUTTONS (NEW POSITION) ================= -->
+      <div class="actions" id="actionsWrap">
+        <div class="actions-inner">
+          <a class="action-btn is-hidden" id="btnCall">Call</a>
+          <a class="action-btn is-hidden" id="btnText">Text</a>
+          <a class="action-btn is-hidden" id="btnEmail">Email</a>
+        </div>
+      </div>
 
       <hr class="sep" />
 
+      <!-- ================= CONTACT ================= -->
       <section id="contactSection">
         <div class="section-title">Contact Info</div>
         <div class="contact-grid">
@@ -64,268 +64,170 @@
             <span id="contactName"></span>
           </div>
 
-          <div class="contact-row" id="rowPhone">
+          <div class="contact-row is-hidden" id="rowPhone">
             <span class="pill">Phone</span>
             <a id="contactPhone" href="#"></a>
           </div>
 
-          <div class="contact-row" id="rowEmail">
+          <div class="contact-row is-hidden" id="rowEmail">
             <span class="pill">Email</span>
             <a id="contactEmail" href="#"></a>
           </div>
         </div>
       </section>
 
-      <footer style="margin-top:14px; text-align:center;">
+      <footer style="margin-top:14px;text-align:center;">
         <div class="small">
           © <span id="year"></span> <span id="footerBrand">Tap-Deck</span>
         </div>
       </footer>
+
     </section>
   </main>
 
-  <script>
-    const DEFAULT_THEME = "theme-01-neon-dark.css";
-    const DEFAULT_LOGO  = "/assets/logos/crestedcritters.png";
-    const BRAND_HOST    = "www.tap-deck.com";
+<script>
+const DEFAULT_THEME = "theme-01-neon-dark.css";
+const DEFAULT_LOGO  = "/assets/logos/crestedcritters.png";
+const BRAND_HOST    = "www.tap-deck.com";
+const $ = id => document.getElementById(id);
 
-    const $ = (id) => document.getElementById(id);
+function getParam(name){
+  return new URLSearchParams(location.search).get(name) || "";
+}
 
-    function getParam(name){
-      return new URLSearchParams(location.search).get(name) || "";
+function normalizeUrl(u){
+  const x = (u||"").trim();
+  if(!x) return "";
+  if(x.startsWith("http")) return x;
+  return "https://" + x;
+}
+
+function normalizeTheme(v){
+  const s = (v||"").trim();
+  return s.replace(/^\/?themes\//i,"");
+}
+
+function hide(el){ if(el) el.classList.add("is-hidden"); }
+function show(el){ if(el) el.classList.remove("is-hidden"); }
+
+function setBtn(id,url){
+  const el=$(id);
+  if(!url){ hide(el); return; }
+  show(el);
+  el.href=url;
+}
+
+function applyLinksLayout(){
+  const wrap=$("linksWrap");
+  const btns=[...wrap.querySelectorAll(".btn")]
+    .filter(b=>!b.classList.contains("is-hidden"));
+
+  wrap.classList.remove("links--grid");
+  btns.forEach(b=>{
+    b.classList.remove("btn--last-full");
+    b.classList.remove("btn--small");
+  });
+
+  if(btns.length>=5){
+    btns.forEach(b=>b.classList.add("btn--small"));
+  }
+
+  if(btns.length>=4){
+    wrap.classList.add("links--grid");
+    if(btns.length%2===1){
+      btns[btns.length-1].classList.add("btn--last-full");
     }
+  }
+}
 
-    function normalizeUrl(u){
-      const x = (u||"").trim();
-      if(!x) return "";
-      if(x.startsWith("http://") || x.startsWith("https://")) return x;
-      return "https://" + x;
-    }
+async function fetchClient(slug){
+  const url=`https://${BRAND_HOST}/data/clients/${slug}.json?v=${Date.now()}`;
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok) throw new Error("Profile not found");
+  return await res.json();
+}
 
-    function normalizeTheme(v){
-      const s = (v||"").trim();
-      if(!s) return "";
-      return s.replace(/^\/?themes\//i, "").replace(/^\/+/, "");
-    }
+async function main(){
+  $("year").textContent=new Date().getFullYear();
+  const slug=(location.pathname.replace(/^\/+|\/+$/g,"")||getParam("client")||"").toLowerCase();
+  if(!slug){
+    $("brand").textContent="No profile selected";
+    hide($("linksWrap"));
+    hide($("aboutSection"));
+    hide($("actionsWrap"));
+    hide($("contactSection"));
+    return;
+  }
 
-    function hide(el){
-      if(!el) return;
-      el.classList.add("is-hidden");
-    }
-    function show(el){
-      if(!el) return;
-      el.classList.remove("is-hidden");
-    }
+  const client=await fetchClient(slug);
 
-    function setBtn(id, url){
-      const el = $(id);
-      if(!el) return false;
+  $("brand").textContent=client.businessName||slug;
+  $("footerBrand").textContent=client.businessName||"Tap-Deck";
+  $("tagline").textContent=client.tagline||"";
 
-      const u = (url||"").trim();
-      if(!u || u === "#"){
-        hide(el);
-        el.href = "#";
-        return false;
-      }
+  $("themeStylesheet").href="/themes/"+normalizeTheme(client.theme||DEFAULT_THEME);
 
-      show(el);
-      el.href = u;
-      return true;
-    }
+  $("logoImg").src=client.logoPath||DEFAULT_LOGO;
+  $("logoLink").href=normalizeUrl(client.links?.website)||"#";
 
-    function applyTheme(themeFile){
-      const theme = normalizeTheme(themeFile || DEFAULT_THEME) || DEFAULT_THEME;
-      const href = ("/themes/" + theme).replace("/themes//","/themes/");
-      $("themeStylesheet").href = href + `?v=${Date.now()}`;
-      return theme;
-    }
+  // ABOUT
+  if(client.about){
+    $("about").textContent=client.about;
+    show($("aboutSection"));
+  }else{
+    hide($("aboutSection"));
+  }
 
-    function setLogo(src){
-      const img = $("logoImg");
-      img.src = src || DEFAULT_LOGO;
-      img.onerror = ()=>{ img.onerror=null; img.src = DEFAULT_LOGO; };
-    }
+  // LINKS
+  const links=client.links||{};
+  setBtn("btnWebsite",normalizeUrl(links.website));
+  setBtn("btnFacebook",normalizeUrl(links.facebook));
+  setBtn("btnInstagram",normalizeUrl(links.instagram));
+  setBtn("btnTikTok",normalizeUrl(links.tiktok));
+  setBtn("btnLinkedIn",normalizeUrl(links.linkedin));
+  setBtn("btnPayPal",normalizeUrl(links.paypal));
+  setBtn("btnCashApp",normalizeUrl(links.cashapp));
+  setBtn("btnVenmo",normalizeUrl(links.venmo));
 
-    function applyLinksLayout(){
-      const wrap = $("linksWrap");
-      if(!wrap) return;
+  // ACTIONS (below about)
+  const phone=client.contact?.phoneE164||"";
+  const email=client.contact?.email||"";
 
-      const btns = Array.from(wrap.querySelectorAll("a.btn"))
-        .filter(a => !a.classList.contains("is-hidden"));
+  if(phone){
+    $("btnCall").href="tel:"+phone;
+    $("btnText").href="sms:"+phone;
+    show($("btnCall"));
+    show($("btnText"));
+  }
 
-      wrap.classList.remove("links--grid");
-      btns.forEach(b=>{
-        b.classList.remove("btn--last-full");
-        b.classList.remove("btn--small");
-      });
+  if(email){
+    $("btnEmail").href="mailto:"+email;
+    show($("btnEmail"));
+  }
 
-      if(btns.length >= 5){
-        btns.forEach(b => b.classList.add("btn--small"));
-      }
+  if(!phone && !email){
+    hide($("actionsWrap"));
+  }
 
-      if(btns.length >= 4){
-        wrap.classList.add("links--grid");
-        if(btns.length % 2 === 1){
-          btns[btns.length - 1].classList.add("btn--last-full");
-        }
-      }
-    }
+  // CONTACT
+  $("contactName").textContent=client.contact?.name||"";
+  if(phone){
+    $("contactPhone").textContent=client.contact?.phoneDisplay||phone;
+    $("contactPhone").href="tel:"+phone;
+    show($("rowPhone"));
+  }
+  if(email){
+    $("contactEmail").textContent=email;
+    $("contactEmail").href="mailto:"+email;
+    show($("rowEmail"));
+  }
 
-    async function fetchClient(slug){
-      const url = `https://${BRAND_HOST}/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
-      const res = await fetch(url, { cache: "no-store" });
-      if(!res.ok) throw new Error("Profile not found");
-      return await res.json();
-    }
+  applyLinksLayout();
+}
 
-    function buildVcardText(client){
-      const fullName = (client.contact?.name || client.businessName || "Contact").trim();
-      const org = (client.businessName || "").trim();
-      const phone = (client.contact?.phoneE164 || "").trim();
-      const email = (client.contact?.email || "").trim();
-      const url = (client.links?.website || "").trim();
-
-      const esc = (s) => String(s||"")
-        .replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
-
-      const lines = ["BEGIN:VCARD","VERSION:3.0",`FN:${esc(fullName)}`];
-      if(org) lines.push(`ORG:${esc(org)}`);
-      if(phone) lines.push(`TEL;TYPE=CELL:${esc(phone)}`);
-      if(email) lines.push(`EMAIL;TYPE=INTERNET:${esc(email)}`);
-      if(url) lines.push(`URL:${esc(url)}`);
-      lines.push("END:VCARD");
-      return lines.join("\n");
-    }
-
-    function wireVcard(client){
-      const a = $("btnVcard");
-      if(!a) return;
-
-      const vpath = (client.vcardPath || "").trim();
-      if(vpath){
-        a.removeAttribute("download");
-        a.href = vpath;
-        return;
-      }
-
-      const text = buildVcardText(client);
-      const blob = new Blob([text], { type: "text/vcard;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-
-      a.href = url;
-      a.download = `${client.slug || "contact"}.vcf`;
-    }
-
-    function wireQuickActions(phoneE164, email){
-      const quick = $("quickWrap");
-      if(!quick) return;
-
-      const call = $("pillCall");
-      const text = $("pillText");
-      const mail = $("pillEmail");
-
-      // Default: hide all
-      hide(call); hide(text); hide(mail);
-
-      if(phoneE164){
-        show(call);
-        show(text);
-        call.href = `tel:${phoneE164}`;
-        text.href = `sms:${phoneE164}`;
-      }
-
-      if(email){
-        show(mail);
-        mail.href = `mailto:${email}`;
-      }
-
-      // If none visible, hide the whole row
-      const anyVisible = [call,text,mail].some(x => x && !x.classList.contains("is-hidden"));
-      if(!anyVisible) hide(quick); else show(quick);
-    }
-
-    async function main(){
-      if (getParam("embed") === "1") document.body.classList.add("embed");
-      $("year").textContent = new Date().getFullYear();
-
-      const pathSlug = location.pathname.replace(/^\/+|\/+$/g, "");
-      const slug = (pathSlug || getParam("client") || "").trim().toLowerCase();
-
-      if(!slug){
-        $("brand").textContent = "No profile selected";
-        hide($("quickWrap"));
-        hide($("linksWrap"));
-        hide($("aboutSection"));
-        hide($("contactSection"));
-        return;
-      }
-
-      const client = await fetchClient(slug);
-
-      document.title = client.businessName ? client.businessName : `Tap-Deck — ${slug}`;
-      $("brand").textContent = client.businessName || slug;
-      $("footerBrand").textContent = client.businessName || "Tap-Deck";
-      $("tagline").textContent = client.tagline || "";
-
-      applyTheme(client.theme || DEFAULT_THEME);
-
-      setLogo(client.logoPath || DEFAULT_LOGO);
-      $("logoLink").href = normalizeUrl(client.links?.website || "") || "#";
-
-      const about = (client.about || "").trim();
-      if(about){
-        $("about").textContent = about;
-        show($("aboutSection"));
-      }else{
-        hide($("aboutSection"));
-      }
-
-      const links = client.links || {};
-      setBtn("btnWebsite",  normalizeUrl(links.website));
-      setBtn("btnFacebook", normalizeUrl(links.facebook));
-      setBtn("btnInstagram", normalizeUrl(links.instagram));
-      setBtn("btnTikTok",   normalizeUrl(links.tiktok));
-      setBtn("btnLinkedIn", normalizeUrl(links.linkedin));
-      setBtn("btnPayPal",   normalizeUrl(links.paypal));
-      setBtn("btnCashApp",  normalizeUrl(links.cashapp));
-      setBtn("btnVenmo",    normalizeUrl(links.venmo));
-
-      wireVcard(client);
-
-      $("contactName").textContent = client.contact?.name || client.businessName || "";
-
-      const phone = (client.contact?.phoneE164 || "").trim();
-      if(phone){
-        $("contactPhone").textContent = client.contact?.phoneDisplay || phone;
-        $("contactPhone").href = `tel:${phone}`;
-        show($("rowPhone"));
-      }else{
-        hide($("rowPhone"));
-      }
-
-      const email = (client.contact?.email || "").trim();
-      if(email){
-        $("contactEmail").textContent = email;
-        $("contactEmail").href = `mailto:${email}`;
-        show($("rowEmail"));
-      }else{
-        hide($("rowEmail"));
-      }
-
-      // ✅ Quick pills (call/text/email)
-      wireQuickActions(phone, email);
-
-      applyLinksLayout();
-    }
-
-    main().catch(err=>{
-      console.error(err);
-      $("brand").textContent = "Profile not found";
-      hide($("quickWrap"));
-      hide($("linksWrap"));
-      hide($("aboutSection"));
-      hide($("contactSection"));
-    });
-  </script>
+main().catch(()=>{
+  $("brand").textContent="Profile not found";
+});
+</script>
 </body>
 </html>
