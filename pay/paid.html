@@ -6,9 +6,6 @@
   NOTE:
   This page does NOT verify Square payment.
   It simply routes to your Google Form with theme+slug prefilled.
-
-  ✅ EDIT:
-  GOOGLE_FORM_URL + keys must match your form.
 ========================================================= -->
 <html lang="en">
 <head>
@@ -56,20 +53,26 @@
       text-decoration:none;
       cursor:pointer;
     }
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:8px 12px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-weight:800;
+      margin-left:8px;
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; flex-wrap:wrap;
+      margin-top:12px;
+    }
     code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
     .small{font-size:12px; color:var(--muted)}
-    .notice{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.20);
-      color:var(--muted);
-      display:none;
-      white-space:pre-wrap;
-      line-height:1.35;
-    }
-    .notice.show{ display:block; }
   </style>
 </head>
 <body>
@@ -77,12 +80,21 @@
     <section class="card">
       <h1>Continue setup</h1>
       <p class="sub">
-        Next step: fill out your details and your profile will go live.
+        Next step: fill out your details and your Tap-Deck profile will go live.
       </p>
 
-      <a class="btn" id="continueBtn" href="#">Continue to intake form</a>
+      <div class="row">
+        <div class="small">Theme:</div>
+        <span class="pill" id="themePill">—</span>
+      </div>
+      <div class="row">
+        <div class="small">Slug:</div>
+        <span class="pill" id="slugPill">—</span>
+      </div>
 
-      <div class="notice" id="notice"></div>
+      <div style="margin-top:16px;">
+        <a class="btn" id="continueBtn" href="#">Continue to intake form</a>
+      </div>
 
       <div class="small" style="margin-top:10px;">
         If you get stuck, return to the theme gallery and try again.
@@ -92,16 +104,12 @@
 
 <script>
 /* =========================================================
-   ✅ EDIT THESE (match your Google Form)
+   ✅ EDIT THESE (already set for you)
 ========================================================= */
-const BRAND_HOST = "tap-deck.com";
-
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeS31lPzqUNhcwy3fnXIYOVJPSNgydtd38XF61HHSs_cK72SA/viewform?usp=pp_url";
 const THEME_QUERY_KEY = "entry.2114451287";
 const SLUG_QUERY_KEY  = "entry.1052989883";
 /* ========================================================= */
-
-function $(id){ return document.getElementById(id); }
 
 function getParam(name){
   return new URLSearchParams(location.search).get(name) || "";
@@ -111,7 +119,7 @@ function slugify(input){
   return String(input || "")
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
@@ -123,21 +131,12 @@ function buildFormUrl(theme, slug){
   return u.toString();
 }
 
-(function main(){
-  const theme = (getParam("theme") || "").trim();
-  const slug  = slugify(getParam("slug") || "");
+const theme = (getParam("theme") || "").trim();
+const slug  = slugify(getParam("slug") || "");
 
-  const btn = $("continueBtn");
-  const notice = $("notice");
-
-  btn.href = buildFormUrl(theme, slug);
-
-  if (!theme || !slug){
-    notice.classList.add("show");
-    notice.textContent =
-      "Missing theme or slug.\n\nGo back to https://" + BRAND_HOST + "/theme-gallery/ and try again.";
-  }
-})();
+document.getElementById("themePill").textContent = theme || "Not set";
+document.getElementById("slugPill").textContent  = slug  || "Not set";
+document.getElementById("continueBtn").href = buildFormUrl(theme, slug);
 </script>
 </body>
 </html>
