@@ -138,34 +138,48 @@ body{
   ACTION PILLS (Call/Text/Email)
 ========================================================= */
 
-.actions{
-  display: flex;
-  justify-content: center;
-  margin: 14px 0 6px;
+/* =========================================================
+  ACTION SECTION (Call / Text / Email)
+========================================================= */
+
+.actions-section{
+  display:flex;
+  justify-content:center;
+  padding: 4px 0;
 }
 
 .actions-inner{
   width: min(var(--linksMaxWidth), 100%);
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
 }
 
+/* Make action buttons use SAME styling system as .btn */
 .action-btn{
-  appearance: none;
-  border: 1px solid var(--pillBorder);
-  background: var(--pillBg);
+  appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:110px;
+  padding:10px 16px;
+
+  border-radius:999px;
+  font-weight:900;
+  text-decoration:none;
+  cursor:pointer;
+
+  /* THEME CONTROLLED */
   color: var(--btnText);
-  text-decoration: none;
-  font-weight: 900;
-  padding: 9px 14px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 90px;
-  cursor: pointer;
+  border: 1px solid var(--btnBorder);
+  background: linear-gradient(
+    90deg,
+    var(--btnGradA),
+    var(--btnGradB)
+  );
 }
 
 /* =========================================================
