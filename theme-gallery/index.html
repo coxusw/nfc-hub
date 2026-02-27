@@ -1,309 +1,475 @@
 <!doctype html>
+<!-- =========================================================
+  Tap-Deck Theme Gallery + Slug Availability Check + Paywall handoff
+  File: /theme-gallery/index.html
+
+  - Lists /themes/*.css automatically via GitHub API
+  - Shows a thumbnail preview (iframe) for each theme
+  - User enters a desired slug (highlighted + required)
+  - Live checks if slug is already taken by looking for:
+      /data/clients/{slug}.json in the repo
+  - "Use this theme" sends user to:
+      https://tap-deck.com/pay/?theme=...&slug=...
+
+  REQUIREMENTS:
+  - Repo must be PUBLIC (GitHub API listing works without token)
+  - /preview/ route must exist (your preview/index.html)
+========================================================= -->
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>NFC Theme Gallery</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tap-Deck Themes</title>
+  <meta name="description" content="Browse themes for your Tap-Deck NFC contact page." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#050816; --bg2:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.12);
+      --text:#eef2ff; --muted:#b6c2ff;
+      --chip:rgba(255,255,255,.08);
+      --danger:#ef4444;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(6,182,212,.18) 0%, transparent 45%),
+        radial-gradient(circle at 80% 30%, rgba(167,139,250,.14) 0%, transparent 45%),
+        linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
+      min-height:100vh;
+    }
+    header{ padding:28px 18px 10px; text-align:center; }
+    h1{ margin:0; font-family:Fraunces,serif; font-weight:600; font-size:32px; }
+    .sub{margin:10px auto 0; max-width:1000px; color:var(--muted); line-height:1.5}
+    .wrap{max-width:1150px; margin:0 auto; padding:14px 16px 40px}
 
-<style>
+    /* Slug block */
+    .slug-block{
+      max-width:720px;
+      margin:16px auto 18px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      box-shadow:0 18px 60px rgba(0,0,0,.18);
+    }
+    .slug-title{
+      font-weight:900;
+      margin:0 0 8px 0;
+      text-align:center;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .slug-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+    }
+    .slug-input{
+      width:min(520px, 100%);
+      padding:12px 14px;
+      border-radius:14px;
+      border:2px solid var(--danger); /* red highlight */
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+      font-weight:700;
+    }
+    .slug-status{
+      width:100%;
+      text-align:center;
+      margin-top:10px;
+      font-size:13px;
+      color:var(--muted);
+      min-height:18px;
+    }
+    .slug-status.ok{ color: rgba(34,197,94,.95); }
+    .slug-status.bad{ color: rgba(239,68,68,.95); }
+    .slug-status.wait{ color: rgba(245,158,11,.95); }
+    .slug-help{
+      margin-top:10px;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
 
-:root{
-  --bg1:#050816;
-  --bg2:#0b1020;
-  --card:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.12);
-  --text:#eef2ff;
-  --muted:#b6c2ff;
-}
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:center;
+      margin:6px 0 18px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:700;
+      cursor:pointer;
+      user-select:none;
+    }
 
-body{
-  margin:0;
-  font-family:Inter,system-ui;
-  color:var(--text);
-  background:
-    radial-gradient(circle at 20% 20%, rgba(6,182,212,.18), transparent 45%),
-    radial-gradient(circle at 80% 30%, rgba(167,139,250,.14), transparent 45%),
-    linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg1));
-}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+      gap:14px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 18px 60px rgba(0,0,0,.25);
+    }
+    .name{ font-weight:800; margin:0 0 8px; font-size:14px; word-break:break-word; }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 12px; }
+    .chip{
+      font-size:12px; padding:6px 10px; border-radius:999px;
+      background:var(--chip);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+    }
 
-.wrap{
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
-}
+    .thumb{
+      width:100%;
+      height:320px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.20);
+    }
+    .thumb iframe{ width:100%; height:100%; border:0; }
 
-header{
-  text-align:center;
-}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+    .btn{
+      flex:1; min-width:130px; text-align:center;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg, rgba(34,197,94,.24), rgba(6,182,212,.18));
+      border-color:rgba(34,197,94,.28);
+    }
 
-h1{
-  font-family:Fraunces;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:16px;
-}
-
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
-}
-
-.thumb{
-  width:100%;
-  height:300px;
-  border-radius:12px;
-  overflow:hidden;
-}
-
-.thumb iframe{
-  width:100%;
-  height:100%;
-  border:none;
-}
-
-.btn{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  text-decoration:none;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-.slug-box{
-  text-align:center;
-  margin:20px auto;
-  max-width:420px;
-}
-
-.slug-label{
-  display:block;
-  margin-bottom:6px;
-  font-weight:600;
-}
-
-.slug-input{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:2px solid #ff4d4d;
-  background:#111;
-  color:white;
-  font-size:16px;
-}
-
-.slug-status{
-  margin-top:8px;
-  font-weight:600;
-}
-
-.slug-status.good{
-  color:#22c55e;
-}
-
-.slug-status.bad{
-  color:#ef4444;
-}
-
-.slug-help{
-  margin-top:6px;
-  font-size:13px;
-  color:var(--muted);
-}
-
-</style>
+    .meta{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
+    #status{ text-align:center; margin:0 0 14px; color:var(--muted); }
+    footer{ margin-top:18px; text-align:center; color:var(--muted); font-size:12px; padding:10px 0 24px; }
+  </style>
 </head>
+
 <body>
+  <header>
+    <h1>Choose a theme</h1>
+    <p class="sub">
+      Enter your desired slug (required), browse themes, then click <b>Use this theme</b> to continue.
+    </p>
+  </header>
 
-<div class="wrap">
+  <main class="wrap">
+    <!-- SLUG INPUT (centered + highlighted) -->
+    <section class="slug-block">
+      <div class="slug-title">Choose your profile slug (required)</div>
+      <div class="slug-row">
+        <input id="slugInput" class="slug-input" placeholder="example: john-doe or mybusiness" autocomplete="off" />
+      </div>
+      <div id="slugStatus" class="slug-status"></div>
+      <div class="slug-help">
+        Your profile will be:
+        <code id="slugPreview">https://tap-deck.com/your-slug</code>
+      </div>
+    </section>
 
-<header>
-<h1>Choose your theme</h1>
-</header>
+    <div class="controls">
+      <button class="pill" id="btnReload" type="button">Reload list</button>
+    </div>
 
-<!-- SLUG INPUT -->
-<div class="slug-box">
+    <div id="status"></div>
+    <section class="grid" id="grid"></section>
 
-<label class="slug-label">Choose your profile link (required)</label>
-
-<input
-id="slugInput"
-class="slug-input"
-placeholder="example: john-doe"
-autocomplete="off"
-/>
-
-<div id="slugStatus" class="slug-status"></div>
-
-<div class="slug-help">
-Your profile will be:
-<code id="slugPreview">https://card.crestedcritters.com/your-slug</code>
-</div>
-
-</div>
-
-<div class="grid" id="grid"></div>
-
-</div>
+    <footer>
+      Tip: If you add new CSS files into <code>/themes</code>, refresh this page and they will appear automatically.
+    </footer>
+  </main>
 
 <script>
+/* =========================================================
+   ✅ EDIT HERE (your repo + host)
+========================================================= */
+const GITHUB_OWNER  = "coxusw";
+const GITHUB_REPO   = "tap-deck";
+const GITHUB_BRANCH = "main";
 
-const BRAND_HOST="card.crestedcritters.com";
+/* Your live domain */
+const BRAND_HOST = "tap-deck.com";
+/* ========================================================= */
 
-const GITHUB_OWNER="coxusw";
-const GITHUB_REPO="tap-deck";
-const GITHUB_BRANCH="main";
+const $ = (id) => document.getElementById(id);
 
-const $=id=>document.getElementById(id);
-
-let ALL=[];
-
-function slugify(text){
-return text
-.toLowerCase()
-.trim()
-.replace(/[^a-z0-9]+/g,"-")
-.replace(/^-+|-+$/g,"");
+function slugify(input){
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
-async function checkSlug(slug){
-
-if(!slug){
-$("slugStatus").textContent="";
-return;
+function setSlugPreview(slug){
+  const safe = slug || "your-slug";
+  $("slugPreview").textContent = `https://${BRAND_HOST}/${safe}`;
 }
 
-$("slugPreview").textContent=
-`https://${BRAND_HOST}/${slug}`;
-
-try{
-
-const res=await fetch(
-`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/clients/${slug}.json`
-);
-
-if(res.status===404){
-
-$("slugStatus").textContent="✓ Available";
-$("slugStatus").className="slug-status good";
-
-}else{
-
-$("slugStatus").textContent="✗ Already taken";
-$("slugStatus").className="slug-status bad";
-
+function setSlugStatus(msg, kind){
+  const el = $("slugStatus");
+  el.textContent = msg || "";
+  el.className = "slug-status " + (kind || "");
 }
 
-}catch{
+async function checkSlugAvailable(slug){
+  // Checks if data/clients/{slug}.json exists in the repo
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/clients/${encodeURIComponent(slug)}.json?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const res = await fetch(url, { headers: { "Accept":"application/vnd.github+json" }, cache:"no-store" });
 
-$("slugStatus").textContent="Error checking slug";
-$("slugStatus").className="slug-status bad";
-
+  if (res.status === 404) return { available:true };
+  if (res.ok) return { available:false };
+  // Other errors (rate limit etc.)
+  const txt = await res.text().catch(()=> "");
+  return { available:null, error:`GitHub check error (${res.status})` + (txt ? `: ${txt}` : "") };
 }
 
+// Debounce
+let slugTimer = null;
+let lastChecked = "";
+
+function onSlugInput(){
+  const raw = $("slugInput").value || "";
+  const slug = slugify(raw);
+  if (slug !== raw.trim().toLowerCase()) {
+    // don't aggressively rewrite cursor position; just show preview using slugified
+    // (optional: you can force input value = slug, but this keeps it gentler)
+  }
+
+  setSlugPreview(slug);
+
+  if (!slug){
+    setSlugStatus("Enter a slug to continue.", "wait");
+    lastChecked = "";
+    return;
+  }
+
+  // basic length rule
+  if (slug.length < 3){
+    setSlugStatus("Slug is too short (min 3 characters).", "bad");
+    lastChecked = "";
+    return;
+  }
+
+  setSlugStatus("Checking availability…", "wait");
+
+  clearTimeout(slugTimer);
+  slugTimer = setTimeout(async ()=>{
+    // avoid re-checking same slug repeatedly
+    if (slug === lastChecked) return;
+    lastChecked = slug;
+
+    const r = await checkSlugAvailable(slug);
+    if (r.available === true){
+      setSlugStatus("✅ Available", "ok");
+    } else if (r.available === false){
+      setSlugStatus("❌ Taken — try a different slug", "bad");
+    } else {
+      setSlugStatus("⚠️ Couldn’t verify slug right now. Try again in a moment.", "wait");
+      console.warn(r.error);
+    }
+  }, 350);
 }
 
-$("slugInput").addEventListener("input",e=>{
-
-const slug=slugify(e.target.value);
-
-e.target.value=slug;
-
-checkSlug(slug);
-
-});
-
-function previewUrl(theme){
-
-return `https://${BRAND_HOST}/preview/?theme=${theme}&embed=1`;
-
+function classify(file){
+  const n = file.toLowerCase();
+  if (n.startsWith("luxury-")) return "luxury";
+  if (n.startsWith("business-")) return "business";
+  if (n.startsWith("animated-")) return "animated";
+  return "other";
 }
 
-function payUrl(theme){
-
-const slug=$("slugInput").value;
-
-if(!slug){
-
-alert("Enter a slug first");
-
-return;
-
+function humanize(file){
+  return file
+    .replace(/\.css$/i,"")
+    .replace(/[-_]+/g," ")
+    .replace(/\b\w/g, (m)=>m.toUpperCase());
 }
 
-location.href=
-`https://${BRAND_HOST}/pay/?theme=${theme}&slug=${slug}`;
+function previewUrl(themeFile){
+  const u = new URL(`https://${BRAND_HOST}/preview/`);
+  u.searchParams.set("theme", themeFile);
+  u.searchParams.set("embed", "1");
 
+  // sample content (thumbnail only)
+  u.searchParams.set("businessName", "Your Business Name");
+  u.searchParams.set("tagline", "Tagline or short promise");
+  u.searchParams.set("about", "This is a preview thumbnail.");
+  u.searchParams.set("website", "https://example.com");
+  u.searchParams.set("facebook", "https://facebook.com/");
+  u.searchParams.set("tiktok", "https://tiktok.com/");
+  u.searchParams.set("name", "Your Name");
+  u.searchParams.set("phone", "+11234567890");
+  u.searchParams.set("email", "you@example.com");
+  return u.toString();
+}
+
+function previewFullUrl(themeFile){
+  const u = new URL(`https://${BRAND_HOST}/preview/`);
+  u.searchParams.set("theme", themeFile);
+
+  u.searchParams.set("businessName", "Your Business Name");
+  u.searchParams.set("tagline", "Tagline or short promise");
+  u.searchParams.set("about", "This is a full preview. Your real info will go here.");
+  u.searchParams.set("website", "https://example.com");
+  u.searchParams.set("facebook", "https://facebook.com/");
+  u.searchParams.set("tiktok", "https://tiktok.com/");
+  u.searchParams.set("name", "Your Name");
+  u.searchParams.set("phone", "+11234567890");
+  u.searchParams.set("email", "you@example.com");
+  return u.toString();
+}
+
+function payUrl(themeFile, slug){
+  const u = new URL(`https://${BRAND_HOST}/pay/`);
+  u.searchParams.set("theme", themeFile);
+  u.searchParams.set("slug", slug);
+  return u.toString();
 }
 
 async function fetchThemes(){
-
-const res=await fetch(
-`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${GITHUB_BRANCH}`
-);
-
-const data=await res.json();
-
-return data
-.filter(x=>x.name.endsWith(".css"))
-.map(x=>x.name);
-
+  const api = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/themes?ref=${encodeURIComponent(GITHUB_BRANCH)}`;
+  const res = await fetch(api, { headers: { "Accept":"application/vnd.github+json" }, cache:"no-store" });
+  if(!res.ok){
+    throw new Error(`GitHub API error ${res.status}. Is the repo public, and does /themes exist?`);
+  }
+  const data = await res.json();
+  if(!Array.isArray(data)) throw new Error("Unexpected GitHub API response.");
+  return data
+    .filter(x=>x.type==="file" && x.name.toLowerCase().endsWith(".css"))
+    .map(x=>x.name)
+    .sort((a,b)=>a.localeCompare(b));
 }
 
-function render(){
+function render(files){
+  const grid = $("grid");
+  grid.innerHTML = "";
 
-const grid=$("grid");
+  for(const f of files){
+    const c = classify(f);
+    const title = humanize(f);
 
-grid.innerHTML="";
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="name">${title}</div>
+      <div class="chips">
+        <span class="chip">${c}</span>
+        <span class="chip"><code>${f}</code></span>
+      </div>
 
-ALL.forEach(theme=>{
+      <div class="thumb">
+        <iframe loading="lazy" referrerpolicy="no-referrer" src="${previewUrl(f)}"></iframe>
+      </div>
 
-const card=document.createElement("div");
+      <div class="row">
+        <a class="btn" href="${previewFullUrl(f)}" target="_blank" rel="noopener">Preview</a>
+        <button class="btn primary" data-use="${encodeURIComponent(f)}">Use this theme</button>
+      </div>
 
-card.className="card";
+      <div class="meta">
+        “Use this theme” continues to payment/activation, then your intake form.
+      </div>
+    `;
+    grid.appendChild(el);
+  }
 
-card.innerHTML=`
+  // Use handlers
+  grid.querySelectorAll("button[data-use]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const theme = decodeURIComponent(btn.getAttribute("data-use") || "");
+      const slug = slugify(($("slugInput").value || ""));
 
-<div>${theme}</div>
+      if(!slug){
+        setSlugStatus("Enter a slug before continuing.", "bad");
+        $("slugInput").focus();
+        return;
+      }
 
-<div class="thumb">
-<iframe src="${previewUrl(theme)}"></iframe>
-</div>
+      if (slug.length < 3){
+        setSlugStatus("Slug is too short (min 3 characters).", "bad");
+        $("slugInput").focus();
+        return;
+      }
 
-<button class="btn">Use this theme</button>
+      // If we already know it's taken, stop
+      if ($("slugStatus").className.includes("bad")){
+        $("slugInput").focus();
+        return;
+      }
 
-`;
+      // Do one last availability check before redirect
+      setSlugStatus("Checking availability…", "wait");
+      const r = await checkSlugAvailable(slug);
+      if (r.available === false){
+        setSlugStatus("❌ Taken — try a different slug", "bad");
+        $("slugInput").focus();
+        return;
+      }
+      if (r.available !== true){
+        setSlugStatus("⚠️ Couldn’t verify slug right now. Try again in a moment.", "wait");
+        return;
+      }
 
-card.querySelector("button").onclick=
-()=>payUrl(theme);
+      // Go to paywall with theme + slug
+      location.href = payUrl(theme, slug);
+    });
+  });
 
-grid.appendChild(card);
-
-});
-
+  $("status").textContent = `${files.length} theme(s) shown.`;
 }
 
-async function init(){
+let ALL = [];
 
-ALL=await fetchThemes();
-
-render();
-
+async function main(){
+  $("status").textContent = "Loading themes…";
+  try{
+    ALL = await fetchThemes();
+    render(ALL);
+  }catch(err){
+    $("status").textContent = err.message || String(err);
+  }
 }
 
-init();
+$("btnReload").addEventListener("click", main);
+$("slugInput").addEventListener("input", onSlugInput);
 
+// init
+setSlugPreview("");
+setSlugStatus("Enter a slug to continue.", "wait");
+main();
 </script>
-
 </body>
 </html>
