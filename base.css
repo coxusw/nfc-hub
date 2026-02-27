@@ -1,127 +1,242 @@
 /* =========================================================
-   Tap-Deck — Base Styles
-   File: /base.css
-
-   This file provides:
-   - Layout foundation
-   - Button grid behavior
-   - Responsive handling
-   - Safe defaults when no theme is loaded
-
-   Theme files in /themes override colors, fonts, etc.
+   TAP-DECK Base Styles (always loaded)
+   - Centers everything
+   - Consistent logo size + centered
+   - ✅ Theme variable aliasing so ALL theme packs work
 ========================================================= */
 
 :root{
-  --bg:#0b1020;
-  --card:rgba(255,255,255,.06);
-  --border:rgba(255,255,255,.14);
-  --text:#eef2ff;
-  --muted:#b6c2ff;
+  /* -------------------------------------------------------
+     DEFAULTS (used if a theme doesn't define anything)
+     ------------------------------------------------------- */
+  --bg1:#050816;
+  --bg2:#0b1020;
+  --bg3:#050816;
+
+  --spot1: rgba(6,182,212,.18);
+  --spot2: rgba(167,139,250,.14);
+  --spot3: rgba(34,197,94,.10);
+
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.12);
+  --shadow: 0 18px 60px rgba(0,0,0,.35);
+
+  --text: #eef2ff;
+  --muted: #b6c2ff;
+
+  --btn-bg: rgba(255,255,255,.10);
+  --btn-border: rgba(255,255,255,.16);
+  --btn-text: var(--text);
+
+  --vcard-bg: rgba(255,255,255,.10);
+
+  --contact-bg: rgba(0,0,0,.20);
+
+  --pill-bg: rgba(255,255,255,.10);
+  --pill-border: rgba(255,255,255,.16);
+  --pill-text: var(--text);
+
+  /* Radii */
+  --radius-card: 22px;
+  --radius-btn: 14px;
+  --radius-row: 14px;
+  --radius-logo: 999px;
+
+  /* -------------------------------------------------------
+     ✅ ALIASES: map “theme pack” variables → base variables
+     This makes your theme packs actually apply.
+     ------------------------------------------------------- */
+
+  /* Backgrounds */
+  --bg1: var(--bg-1, var(--bg1));
+  --bg2: var(--bg-2, var(--bg2));
+  --bg3: var(--bg-3, var(--bg3));
+
+  --spot1: var(--bg-spot-1, var(--spot1));
+  --spot2: var(--bg-spot-2, var(--spot2));
+  --spot3: var(--bg-spot-3, var(--spot3));
+
+  /* Card / borders */
+  --card:   var(--card, var(--card));
+  --border: var(--border, var(--border));
+  --shadow: var(--shadow, var(--shadow));
+
+  /* Text */
+  --text:  var(--text-main, var(--text));
+  --muted: var(--text-muted, var(--muted));
+
+  /* Buttons */
+  --btn-bg:     var(--btn-bg, var(--btn-bg));
+  --btn-border: var(--btn-border, var(--btn-border));
+  --btn-text:   var(--btn-text, var(--btn-text));
+  --vcard-bg:   var(--vcard-bg, var(--vcard-bg));
+
+  /* Contact rows / links */
+  --contact-bg: var(--contact-bg, var(--contact-bg));
+  --link-color: var(--link-color, var(--muted));
+
+  /* Pills */
+  --pill-bg:     var(--pill-bg, var(--pill-bg));
+  --pill-border: var(--pill-border, var(--pill-border));
+  --pill-text:   var(--pill-text, var(--pill-text));
+
+  /* Radii overrides if theme defines them */
+  --radius-card: var(--radius-card, 22px);
+  --radius-btn:  var(--radius-btn, 14px);
+  --radius-row:  var(--radius-row, 14px);
+  --radius-logo: var(--radius-logo, 999px);
 }
 
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; }
 
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
-  background:var(--bg);
+  min-height:100vh;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   color:var(--text);
-  display:flex;
-  justify-content:center;
-  padding:20px;
+  background:
+    radial-gradient(circle at 20% 20%, var(--spot1) 0%, transparent 45%),
+    radial-gradient(circle at 80% 30%, var(--spot2) 0%, transparent 45%),
+    radial-gradient(circle at 45% 85%, var(--spot3) 0%, transparent 55%),
+    linear-gradient(180deg,var(--bg1),var(--bg2),var(--bg3));
 }
 
+/* Center the whole card */
 .wrap{
-  width:min(720px,100%);
-  text-align:center;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 16px;
 }
 
-/* =========================
-   Logo
-========================= */
+/* Card sizing */
+.card{
+  width:min(520px, 100%);
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-card);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+/* Header */
+.hero{
+  padding:18px 18px 10px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.logo-link{ display:inline-block; }
 
 .logo{
-  max-width:160px;
-  height:auto;
-  margin:0 auto 18px;
+  width:110px;
+  height:110px;
+  border-radius:var(--radius-logo);
+  object-fit:cover;
   display:block;
+  margin:0 auto;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.25);
 }
 
-/* =========================
-   Typography
-========================= */
-
-h1{
-  margin:0 0 6px 0;
-  font-size:28px;
-  font-weight:800;
+/* Headings */
+.titleblock{ text-align:center; }
+.brand{
+  margin:0;
+  font-family:Fraunces, serif;
+  font-weight:600;
+  font-size:26px;
 }
-
 .tagline{
-  margin-bottom:12px;
-  opacity:.9;
+  margin:6px 0 0;
+  color:var(--muted);
 }
 
-.about{
-  margin-bottom:20px;
-  opacity:.85;
-  line-height:1.5;
-}
-
-/* =========================
-   Button Grid
-========================= */
-
-.buttons{
+/* Buttons */
+.links{
+  padding:10px 18px 0;
   display:grid;
-  grid-template-columns:repeat(2, 1fr);
   gap:10px;
-  margin-top:10px;
 }
 
 .btn{
-  padding:10px 12px;
-  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:11px 12px;
+  border-radius:var(--radius-btn);
   text-decoration:none;
-  font-weight:700;
+  font-weight:800;
+  color:var(--btn-text);
+  background:var(--btn-bg);
+  border:1px solid var(--btn-border);
+}
+
+.btn.vcard{
+  background: var(--vcard-bg);
+}
+
+/* Sections */
+.section{
+  padding:14px 18px;
+}
+.section h2{
+  margin:0 0 10px;
   font-size:14px;
-  background:rgba(255,255,255,.10);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.section p{ margin:0; }
+
+/* Contact grid */
+.contact-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.contact-item{
+  padding:10px 12px;
+  border-radius:var(--radius-row);
+  background:var(--contact-bg);
   border:1px solid var(--border);
-  color:var(--text);
+}
+.label{ font-size:12px; color:var(--muted); }
+.value{ margin-top:4px; font-weight:700; }
+.value a{ color:var(--link-color); text-decoration:none; }
+.value a:hover{ text-decoration:underline; }
+
+/* Quick actions centered */
+.quick-actions{
+  margin-top:12px;
   display:flex;
   justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.pill{
+  display:inline-flex;
   align-items:center;
-  transition:all .18s ease;
+  justify-content:center;
+  min-width:90px;
+  padding:10px 12px;
+  border-radius:999px;
+  text-decoration:none;
+  color:var(--pill-text);
+  background:var(--pill-bg);
+  border:1px solid var(--pill-border);
+  font-weight:800;
 }
 
-.btn:hover{
-  background:rgba(255,255,255,.18);
-  transform:translateY(-1px);
-}
-
-.btn.full{
-  grid-column:1 / -1;
-}
-
-/* =========================
-   Responsive
-========================= */
-
-@media (max-width:480px){
-  .buttons{
-    grid-template-columns:1fr;
-  }
-  .btn.full{
-    grid-column:auto;
-  }
-}
-
-/* =========================
-   Utility
-========================= */
-
-.hidden{
-  display:none !important;
+/* Footer */
+.footer{
+  padding:14px 18px 18px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
 }
