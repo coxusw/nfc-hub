@@ -1,355 +1,181 @@
 <!doctype html>
 <!-- =========================================================
-  NFC HUB (Path/Query-based) — Single GitHub Pages site
-  =========================================================
+  Tap-Deck — Client Profile
+  File: /index.html
 
-  Works on:
-    https://coxusw.github.io/tap-deck-site/?client=test
-    https://coxusw.github.io/tap-deck-site/test  (if SPA restore is set)
+  Loads client profile from:
+  /data/clients/{slug}.json
 
-  And later on:
-    https://tap-deck.com/?client=test
-    https://tap-deck.com/test
+  Slug is derived from:
+  https://tap-deck.com/slug
 
-  Loads:
-    ./data/clients/{slug}.json   (relative path so it works everywhere)
 ========================================================= -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NFC Card</title>
-  <meta name="description" content="Tap to view contact info and links." />
+  <title>Tap-Deck Profile</title>
 
-  <!-- Base layout + theme (RELATIVE paths for GitHub Pages project sites) -->
-  <link rel="stylesheet" href="./base.css" />
-  <link id="themeStylesheet" rel="stylesheet" href="./themes/theme-01-neon-dark.css" />
-  <link rel="icon" href="./logo.jpg" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Small page-level tweak: center About section -->
+  <link rel="stylesheet" id="themeStylesheet" href="">
   <style>
-    #aboutSection { text-align: center; }
-    #about { margin-left: auto; margin-right: auto; max-width: 70ch; }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+      background:#0b1020;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+      padding:20px;
+    }
+    .wrap{
+      width:min(720px,100%);
+      text-align:center;
+    }
+    .logo{
+      max-width:140px;
+      margin:0 auto 16px;
+    }
+    h1{margin:0 0 6px 0}
+    .tagline{opacity:.85;margin-bottom:12px}
+    .about{opacity:.8;margin-bottom:20px}
+    .buttons{
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:10px;
+    }
+    .btn{
+      padding:10px 12px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:700;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.18);
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .btn.full{
+      grid-column:1 / -1;
+    }
+    .hidden{display:none}
   </style>
 </head>
 
 <body>
-  <main class="wrap">
-    <section class="card">
-
-      <header class="hero" id="hero">
-        <a class="logo-link" id="logoLink" href="#" target="_blank" rel="noopener">
-          <img class="logo" id="logoImg" src="./logo.jpg" alt="Logo" />
-        </a>
-
-        <div class="titleblock">
-          <h1 class="brand" id="brand">Loading…</h1>
-          <p class="tagline" id="tagline"></p>
-        </div>
-      </header>
-
-      <!-- LINKS -->
-      <nav class="links" id="linksWrap" aria-label="Primary links">
-        <a class="btn" id="btnWebsite" href="#" target="_blank" rel="noopener">Website</a>
-        <a class="btn" id="btnFacebook" href="#" target="_blank" rel="noopener">Facebook</a>
-        <a class="btn" id="btnInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
-        <a class="btn" id="btnTikTok" href="#" target="_blank" rel="noopener">TikTok</a>
-
-        <a class="btn" id="btnLinkedIn" href="#" target="_blank" rel="noopener">LinkedIn</a>
-        <a class="btn" id="btnPayPal" href="#" target="_blank" rel="noopener">PayPal</a>
-        <a class="btn" id="btnCashApp" href="#" target="_blank" rel="noopener">Cash App</a>
-        <a class="btn" id="btnVenmo" href="#" target="_blank" rel="noopener">Venmo</a>
-
-        <a class="btn vcard" id="btnVcard" href="#" download>Save Contact</a>
-      </nav>
-
-      <!-- ABOUT -->
-      <section class="section" id="aboutSection">
-        <h2 id="aboutHeader">About</h2>
-        <p id="about"></p>
-      </section>
-
-      <!-- CONTACT -->
-      <section class="section" id="contactSection">
-        <h2 id="contactHeader">Contact info</h2>
-
-        <div class="contact-grid" id="contactGrid">
-          <div class="contact-item" id="rowName">
-            <div class="label">Name</div>
-            <div class="value" id="contactName"></div>
-          </div>
-
-          <div class="contact-item" id="rowPhone">
-            <div class="label">Phone</div>
-            <div class="value"><a id="contactPhone" href="#"></a></div>
-          </div>
-
-          <div class="contact-item" id="rowEmail">
-            <div class="label">Email</div>
-            <div class="value"><a id="contactEmail" href="#"></a></div>
-          </div>
-        </div>
-
-        <div class="quick-actions" id="quickActions" aria-label="Quick actions">
-          <a class="pill" id="pillCall" href="#">Call</a>
-          <a class="pill" id="pillText" href="#">Text</a>
-          <a class="pill" id="pillEmail" href="#">Email</a>
-        </div>
-      </section>
-
-      <footer class="footer" id="footer">
-        <span>© <span id="year"></span> <span id="footerBrand"></span></span>
-      </footer>
-
-    </section>
+  <main class="wrap" id="app">
+    Loading profile…
   </main>
 
-  <script>
-    // =========================================================
-    // ✅ Environment-aware base path (GitHub project site vs real domain root)
-    // =========================================================
-    function getBasePath() {
-      // On GitHub Pages project site: /tap-deck-site/...
-      // On production domain: /...
-      const parts = window.location.pathname.split('/').filter(Boolean);
+<script>
+/* =========================================================
+   CONFIG
+========================================================= */
+const BRAND_HOST = "tap-deck.com";
+/* ========================================================= */
 
-      if (window.location.hostname.toLowerCase().endsWith('.github.io')) {
-        // first segment is repo name
-        return parts.length ? `/${parts[0]}/` : '/';
-      }
-      return '/';
-    }
+const app = document.getElementById("app");
 
-    const BASE = getBasePath();
+function getSlugFromPath(){
+  const path = window.location.pathname.replace(/^\/+/,"").trim();
+  if (!path) return null;
+  return path.toLowerCase();
+}
 
-    // =========================================================
-    // ✅ EDIT THESE (global settings)
-    // =========================================================
-    const DEFAULT_THEME = `${BASE}themes/theme-01-neon-dark.css`;
-    const DATA_PATH = (slug) => `${BASE}data/clients/${slug}.json`;
+function createButton(label, url){
+  if (!url) return null;
+  const a = document.createElement("a");
+  a.href = url;
+  a.className = "btn";
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = label;
+  return a;
+}
 
-    const $ = (id) => document.getElementById(id);
+function renderProfile(client){
+  document.title = client.businessName || "Tap-Deck Profile";
 
-    // =========================================================
-    // Slug: query (?client=test) OR path (/test)
-    // GitHub project site: /tap-deck-site/test
-    // Production: /test
-    // =========================================================
-    function getSlugFromPathOrQuery() {
-      const params = new URLSearchParams(location.search);
-      const qClient = (params.get("client") || "").trim().toLowerCase();
-      if (qClient) return qClient;
+  // load theme
+  if (client.theme){
+    document.getElementById("themeStylesheet").href =
+      "/themes/" + client.theme;
+  }
 
-      const parts = location.pathname.split("/").filter(Boolean).map(s => s.toLowerCase());
+  app.innerHTML = "";
 
-      // No slug at all -> default sample
-      if (parts.length === 0) return "sample";
+  // logo
+  if (client.logoPath){
+    const img = document.createElement("img");
+    img.src = client.logoPath;
+    img.className = "logo";
+    app.appendChild(img);
+  }
 
-      // GitHub Pages project site -> slug is second segment
-      if (location.hostname.toLowerCase().endsWith(".github.io")) {
-        return (parts[1] || "sample").trim();
-      }
+  // business
+  const h1 = document.createElement("h1");
+  h1.textContent = client.businessName || "";
+  app.appendChild(h1);
 
-      // Production -> slug is first segment
-      return (parts[0] || "sample").trim();
-    }
+  if (client.tagline){
+    const t = document.createElement("div");
+    t.className = "tagline";
+    t.textContent = client.tagline;
+    app.appendChild(t);
+  }
 
-    async function loadClient(slug) {
-      const res = await fetch(DATA_PATH(slug), { cache: "no-store" });
-      if (!res.ok) throw new Error(`Client "${slug}" not found (${res.status})`);
-      return res.json();
-    }
+  if (client.about){
+    const a = document.createElement("div");
+    a.className = "about";
+    a.textContent = client.about;
+    app.appendChild(a);
+  }
 
-    // =========================================================
-    // UI helpers: show/hide
-    // =========================================================
-    function hide(el) { if (el) el.classList.add("is-hidden"); }
-    function show(el) { if (el) el.classList.remove("is-hidden"); }
+  const grid = document.createElement("div");
+  grid.className = "buttons";
 
-    function setTextOrHide(el, text) {
-      const t = String(text || "").trim();
-      if (!t) { hide(el); return false; }
-      show(el);
-      el.textContent = t;
-      return true;
-    }
+  const links = client.links || {};
 
-    function setHrefOrHide(anchorEl, href) {
-      const h = String(href || "").trim();
-      if (!h || h === "#") { hide(anchorEl); return false; }
-      show(anchorEl);
-      anchorEl.href = h;
-      return true;
-    }
+  const buttons = [
+    createButton("Website", links.website),
+    createButton("Facebook", links.facebook),
+    createButton("Instagram", links.instagram),
+    createButton("TikTok", links.tiktok),
+    createButton("LinkedIn", links.linkedin),
+    createButton("PayPal", links.paypal),
+    createButton("Cash App", links.cashapp),
+    createButton("Venmo", links.venmo),
+  ].filter(Boolean);
 
-    // After hiding empty link buttons, make the grid look nice
-    function rebalanceLinkGrid() {
-      const wrap = $("linksWrap");
-      if (!wrap) return;
+  buttons.forEach(btn => grid.appendChild(btn));
 
-      const visible = Array.from(wrap.children).filter(el => !el.classList.contains("is-hidden"));
-      wrap.classList.remove("links--grid");
+  // if odd number, center last
+  if (buttons.length % 2 === 1){
+    buttons[buttons.length - 1].classList.add("full");
+  }
 
-      if (visible.length >= 3) wrap.classList.add("links--grid");
+  app.appendChild(grid);
+}
 
-      visible.forEach(el => el.classList.remove("btn--last-full"));
+async function loadProfile(){
+  const slug = getSlugFromPath();
 
-      if (wrap.classList.contains("links--grid") && visible.length % 2 === 1) {
-        const last = visible[visible.length - 1];
-        if (last) last.classList.add("btn--last-full");
-      }
-    }
+  if (!slug){
+    app.innerHTML = "Profile not found.";
+    return;
+  }
 
-    function applyClient(c) {
-      // Theme (cache-bust so switching themes shows immediately)
-      const themeHref = c.theme
-        ? (c.theme.startsWith("/") ? `${BASE}${c.theme.replace(/^\//, "")}` : `${BASE}themes/${c.theme}`)
-        : DEFAULT_THEME;
+  try{
+    const res = await fetch(`/data/clients/${slug}.json`, { cache:"no-store" });
+    if (!res.ok) throw new Error("Profile not found");
+    const client = await res.json();
+    renderProfile(client);
+  }catch(err){
+    app.innerHTML = "Profile not found.";
+  }
+}
 
-      $("themeStylesheet").href = `${themeHref}?v=${Date.now()}`;
-
-      // Title + footer brand
-      const businessName = (c.businessName || "").trim();
-      const contactName = (c.contact?.name || "").trim();
-      const title = businessName || contactName || "NFC Card";
-
-      document.title = title;
-      $("footerBrand").textContent = title;
-
-      if (!setTextOrHide($("brand"), businessName || contactName)) {
-        $("brand").textContent = " ";
-      }
-
-      setTextOrHide($("tagline"), c.tagline);
-
-      const hasAbout = setTextOrHide($("about"), c.about);
-      if (!hasAbout) hide($("aboutSection")); else show($("aboutSection"));
-
-      // Logo (optional)
-      const logoPath = (c.logoPath || "").trim() || `${BASE}logo.jpg`;
-      $("logoImg").src = logoPath;
-      $("logoImg").alt = `${title} logo`;
-
-      // Website used as logo link if present
-      const website = (c.links?.website || "").trim();
-      if (website) {
-        $("logoLink").href = website;
-        show($("logoLink"));
-      } else {
-        $("logoLink").href = "#";
-      }
-
-      // Links
-      setHrefOrHide($("btnWebsite"), c.links?.website);
-      setHrefOrHide($("btnFacebook"), c.links?.facebook);
-      setHrefOrHide($("btnInstagram"), c.links?.instagram);
-      setHrefOrHide($("btnTikTok"), c.links?.tiktok);
-
-      setHrefOrHide($("btnLinkedIn"), c.links?.linkedin);
-      setHrefOrHide($("btnPayPal"), c.links?.paypal);
-      setHrefOrHide($("btnCashApp"), c.links?.cashapp);
-      setHrefOrHide($("btnVenmo"), c.links?.venmo);
-
-      // vCard
-      const vcardPath = (c.vcardPath || "").trim();
-      if (vcardPath) {
-        $("btnVcard").href = vcardPath.startsWith("/")
-          ? `${BASE}${vcardPath.replace(/^\//, "")}`
-          : vcardPath;
-        show($("btnVcard"));
-      } else {
-        hide($("btnVcard"));
-      }
-
-      // Contact info rows
-      const nameOk = setTextOrHide($("contactName"), c.contact?.name);
-      if (!nameOk) hide($("rowName")); else show($("rowName"));
-
-      const phoneE164 = (c.contact?.phoneE164 || "").trim();
-      const phoneDisplay = (c.contact?.phoneDisplay || "").trim() || phoneE164;
-
-      if (phoneE164 || phoneDisplay) {
-        show($("rowPhone"));
-        $("contactPhone").textContent = phoneDisplay || "";
-        $("contactPhone").href = phoneE164 ? `tel:${phoneE164}` : "#";
-      } else {
-        hide($("rowPhone"));
-      }
-
-      const email = (c.contact?.email || "").trim();
-      if (email) {
-        show($("rowEmail"));
-        $("contactEmail").textContent = email;
-        $("contactEmail").href = `mailto:${email}`;
-      } else {
-        hide($("rowEmail"));
-      }
-
-      // Quick actions
-      if (phoneE164) {
-        $("pillCall").href = `tel:${phoneE164}`; show($("pillCall"));
-        $("pillText").href = `sms:${phoneE164}`; show($("pillText"));
-      } else {
-        hide($("pillCall"));
-        hide($("pillText"));
-      }
-
-      if (email) {
-        $("pillEmail").href = `mailto:${email}`; show($("pillEmail"));
-      } else {
-        hide($("pillEmail"));
-      }
-
-      const anyPill = [ $("pillCall"), $("pillText"), $("pillEmail") ]
-        .some(el => el && !el.classList.contains("is-hidden"));
-      if (!anyPill) hide($("quickActions")); else show($("quickActions"));
-
-      const anyContactRow = [ $("rowName"), $("rowPhone"), $("rowEmail") ]
-        .some(el => el && !el.classList.contains("is-hidden"));
-      if (!anyContactRow) hide($("contactSection")); else show($("contactSection"));
-
-      rebalanceLinkGrid();
-    }
-
-    async function main() {
-      $("year").textContent = new Date().getFullYear();
-
-      // SPA restore block (works with your 404.html)
-      const redirectPath = sessionStorage.redirectPath;
-      if (redirectPath) {
-        sessionStorage.removeItem("redirectPath");
-        history.replaceState(null, "", redirectPath);
-      }
-
-      const slug = getSlugFromPathOrQuery();
-
-      try {
-        const client = await loadClient(slug);
-        applyClient(client);
-      } catch (err) {
-        console.error(err);
-        try {
-          const client = await loadClient("sample");
-          applyClient(client);
-          $("brand").textContent = "Client not found";
-          $("tagline").textContent = `No card configured for "${slug}". Showing sample.`;
-          show($("tagline"));
-        } catch (e2) {
-          $("brand").textContent = "Client not found";
-          $("tagline").textContent = "No sample client available.";
-          show($("tagline"));
-          hide($("linksWrap"));
-          hide($("aboutSection"));
-          hide($("contactSection"));
-        }
-      }
-    }
-
-    main();
-  </script>
+loadProfile();
+</script>
 </body>
 </html>
