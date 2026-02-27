@@ -4,12 +4,20 @@
   File: /theme-gallery/index.html
 
   - Shows theme thumbnails (iframe to /preview/?embed=1)
-  - Slug input (highlighted) + instant availability check
+  - Slug input + instant availability check
   - "Use this theme" goes to /pay/?theme=...&slug=...
 
-  IMPORTANT:
-  - This script runs AFTER DOM load to avoid "document.body is null"
+  NOTE:
+  - Runs AFTER DOM load to avoid "document.body is null"
   - Slug availability uses same-origin: /data/clients/{slug}.json
+
+  Curated sets shown:
+  - 6 Basic themes (theme-..)
+  - 12 Business themes (business-..)
+  - 30 Animated themes (animated-..)
+
+  Legacy themes (e.g. luxury-*, default.css) remain supported
+  for existing profiles but are hidden from this gallery.
 ========================================================= -->
 <html lang="en">
 <head>
@@ -29,8 +37,6 @@
       --border:rgba(255,255,255,.12);
       --text:#eef2ff; --muted:#b6c2ff;
       --chip:rgba(255,255,255,.08);
-      --danger: rgba(239,68,68,.85);
-      --good: rgba(34,197,94,.85);
     }
     *{box-sizing:border-box}
     body{
@@ -66,10 +72,7 @@
       box-shadow:0 18px 60px rgba(0,0,0,.18);
       text-align:center;
     }
-    .slugLabel{
-      font-weight:900;
-      margin-bottom:8px;
-    }
+    .slugLabel{ font-weight:900; margin-bottom:8px; }
     .slugInput{
       width:100%;
       padding:12px 12px;
@@ -77,20 +80,11 @@
       outline:none;
       background:rgba(0,0,0,.25);
       color:var(--text);
-      border:2px solid rgba(239,68,68,.70); /* red highlight */
+      border:2px solid rgba(239,68,68,.70);
       font-size:16px;
     }
-    .slugHelp{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-    }
-    .slugStatus{
-      margin-top:10px;
-      font-weight:800;
-      font-size:13px;
-    }
+    .slugHelp{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .slugStatus{ margin-top:10px; font-weight:800; font-size:13px; }
     .slugStatus.good{ color: rgba(34,197,94,.95); }
     .slugStatus.bad{ color: rgba(239,68,68,.95); }
     .slugStatus.neutral{ color: var(--muted); }
@@ -107,11 +101,27 @@
       user-select:none;
     }
 
+    .section{
+      margin-top:18px;
+    }
+    .section h2{
+      margin: 0 0 10px;
+      font-family: Fraunces, serif;
+      font-weight: 600;
+      font-size: 22px;
+      text-align: left;
+    }
+    .section .hint{
+      margin: -2px 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .grid{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
       gap:14px;
-      margin-top:14px;
     }
     .card{
       background:var(--card);
@@ -176,9 +186,7 @@
       <div class="slugBox">
         <div class="slugLabel">Required: choose your slug</div>
         <input id="slugInput" class="slugInput" placeholder="example: john-doe or mybusiness" autocomplete="off" />
-
         <div id="slugStatus" class="slugStatus neutral">Enter a slug to check availability.</div>
-
         <div class="slugHelp">
           Your profile will be:
           <div style="margin-top:6px;">
@@ -191,25 +199,93 @@
     </div>
 
     <div id="status"></div>
-    <section class="grid" id="grid"></section>
+
+    <section class="section">
+      <h2>Basic (6)</h2>
+      <div class="hint">Clean, simple styles. Great default choice.</div>
+      <div class="grid" id="gridBasic"></div>
+    </section>
+
+    <section class="section">
+      <h2>Business (12)</h2>
+      <div class="hint">Professional, brand-friendly themes for trades and services.</div>
+      <div class="grid" id="gridBusiness"></div>
+    </section>
+
+    <section class="section">
+      <h2>Animated (30)</h2>
+      <div class="hint">Eye-catching motion. (Respects “Reduce Motion” accessibility setting.)</div>
+      <div class="grid" id="gridAnimated"></div>
+    </section>
 
     <footer>
       Tip: If you add new CSS files into <code>/themes</code>, refresh this page and they will appear automatically.
+      <br/>This gallery shows the curated set (Basic/Business/Animated). Legacy themes remain supported but hidden.
     </footer>
   </main>
 
 <script>
-/* =========================================================
-   Runs AFTER DOM is ready to avoid:
-   TypeError: document.body is null
-========================================================= */
-
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (id) => document.getElementById(id);
 
-  // ✅ Change this if you want a different logo in the theme preview thumbnails
-  // Make sure this file exists in your repo at that path.
+  // Thumbnail logo used in the preview if your /preview/ page supports ?logo=
   const PREVIEW_LOGO_PATH = "/assets/logos/crestedcritters.png";
+
+  // Curated lists (keep these in sync with /themes)
+  const BASIC = [
+  "theme-01-neon-dark.css",
+  "theme-02-soft-light.css",
+  "theme-03-minimal-slate.css",
+  "theme-04-sandstone.css",
+  "theme-05-forest-mist.css",
+  "theme-06-sunset-pop.css"
+];
+  const BUSINESS = [
+  "business-automotive-graphite-bold.css",
+  "business-construction-safety-bold.css",
+  "business-contractor-steel-bold.css",
+  "business-education-indigo-bold.css",
+  "business-finance-navy-bold.css",
+  "business-landscaping-green-bold.css",
+  "business-law-firm-mahogany-bold.css",
+  "business-medical-clean-bold.css",
+  "business-real-estate-slate-bold.css",
+  "business-restaurant-ember-bold.css",
+  "business-salon-blush-bold.css",
+  "business-tech-blue-executive.css"
+];
+  const ANIMATED = [
+  "animated-aurora-drift.css",
+  "animated-ember-flicker.css",
+  "animated-galaxy-flow.css",
+  "animated-neon-pulse.css",
+  "animated-ocean-shimmer.css",
+  "animated-sunset-wave.css",
+  "animated-01-aurora-glide.css",
+  "animated-02-neon-ribbon.css",
+  "animated-03-cyber-grid.css",
+  "animated-04-solar-flare.css",
+  "animated-05-deep-sea.css",
+  "animated-06-starry-drift.css",
+  "animated-07-lava-lamp.css",
+  "animated-08-mint-wave.css",
+  "animated-09-royal-violet.css",
+  "animated-10-candy-pop.css",
+  "animated-11-holo-shift.css",
+  "animated-12-emberstorm.css",
+  "animated-13-northern-lights.css",
+  "animated-14-midnight-ink.css",
+  "animated-15-synth-sunrise.css",
+  "animated-16-sapphire-rush.css",
+  "animated-17-peach-glow.css",
+  "animated-18-forest-aurora.css",
+  "animated-19-ocean-bloom.css",
+  "animated-20-electric-lime.css",
+  "animated-21-twilight-fade.css",
+  "animated-22-comet-trails.css",
+  "animated-23-prism-dance.css",
+  "animated-24-plasma-pulse.css"
+];
 
   function getParam(name){
     return new URLSearchParams(location.search).get(name) || "";
@@ -227,20 +303,19 @@ document.addEventListener("DOMContentLoaded", () => {
   function humanize(file){
     return file
       .replace(/\.css$/i,"")
+      .replace(/^(theme|business|animated)-\d+-?/i, "")
       .replace(/[-_]+/g," ")
       .replace(/\b\w/g, (m)=>m.toUpperCase());
   }
 
-  function classify(file){
+  function category(file){
     const n = file.toLowerCase();
-    if (n.startsWith("luxury-")) return "luxury";
-    if (n.startsWith("business-")) return "business";
     if (n.startsWith("animated-")) return "animated";
-    return "other";
+    if (n.startsWith("business-")) return "business";
+    return "basic";
   }
 
   function previewUrl(themeFile){
-    // Use same-origin relative URL to avoid CORS headaches
     const u = new URL("/preview/", location.origin);
     u.searchParams.set("theme", themeFile);
     u.searchParams.set("embed", "1");
@@ -253,14 +328,11 @@ document.addEventListener("DOMContentLoaded", () => {
     u.searchParams.set("facebook", "https://facebook.com/");
     u.searchParams.set("tiktok", "https://tiktok.com/");
     u.searchParams.set("instagram", "https://instagram.com/");
-
     u.searchParams.set("name", "Tap-Deck");
     u.searchParams.set("phone", "+11234567890");
     u.searchParams.set("email", "support@tap-deck.com");
 
-    // ✅ Let preview load your logo (preview page must support this param OR it will just ignore it)
     u.searchParams.set("logo", PREVIEW_LOGO_PATH);
-
     return u.toString();
   }
 
@@ -272,7 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchThemes(){
-    // Your repo is public, so GitHub listing works without a token.
     const GITHUB_OWNER  = "coxusw";
     const GITHUB_REPO   = "tap-deck";
     const GITHUB_BRANCH = "main";
@@ -286,8 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(!Array.isArray(data)) throw new Error("Unexpected GitHub API response.");
     return data
       .filter(x=>x.type==="file" && x.name.toLowerCase().endsWith(".css"))
-      .map(x=>x.name)
-      .sort((a,b)=>a.localeCompare(b));
+      .map(x=>x.name);
   }
 
   // ---- Slug availability check ----
@@ -308,8 +378,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     setSlugStatus("Checking availability…", "neutral");
-
-    // ✅ same-origin check (no CORS): if file exists => taken
     const url = `/data/clients/${encodeURIComponent(slug)}.json?v=${Date.now()}`;
 
     try{
@@ -342,19 +410,13 @@ document.addEventListener("DOMContentLoaded", () => {
     slugTimer = setTimeout(()=>checkSlugAvailability(slug), 220);
   }
 
-  // ---- Render themes ----
-  let ALL = [];
-
-  function render(files){
-    const grid = $("grid");
+  function renderInto(gridId, files){
+    const grid = $(gridId);
     grid.innerHTML = "";
 
-    const slug = makeSlug(($("slugInput").value || ""));
-    const shown = files;
-
-    for(const f of shown){
+    for(const f of files){
       const title = humanize(f);
-      const c = classify(f);
+      const c = category(f);
 
       const el = document.createElement("div");
       el.className = "card";
@@ -395,15 +457,26 @@ document.addEventListener("DOMContentLoaded", () => {
         location.href = payUrl(theme, slug);
       });
     });
-
-    $("status").textContent = `${shown.length} theme(s) shown.`;
   }
 
   async function main(){
     $("status").textContent = "Loading themes…";
     try{
-      ALL = await fetchThemes();
-      render(ALL);
+      const repoThemes = await fetchThemes();
+
+      // Only show the curated list, but warn if anything is missing in repo
+      const missing = [];
+      for (const f of [...BASIC, ...BUSINESS, ...ANIMATED]){
+        if (!repoThemes.includes(f)) missing.push(f);
+      }
+
+      renderInto("gridBasic", BASIC);
+      renderInto("gridBusiness", BUSINESS);
+      renderInto("gridAnimated", ANIMATED);
+
+      $("status").textContent = missing.length
+        ? `Loaded. Missing in /themes: ${missing.join(", ")}`
+        : "Loaded ✅";
     }catch(err){
       $("status").textContent = err.message || String(err);
     }
@@ -412,7 +485,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Init
   $("slugInput").addEventListener("input", onSlugInput);
 
-  // If URL has ?slug=..., prefill it
   const qsSlug = makeSlug(getParam("slug"));
   if (qsSlug){
     $("slugInput").value = qsSlug;
@@ -422,7 +494,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   $("btnReload").addEventListener("click", main);
-
   main();
 });
 </script>
